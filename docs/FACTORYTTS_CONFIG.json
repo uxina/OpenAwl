@@ -1,0 +1,79 @@
+{
+  "project": "阿瓦隆语音面板 - 夜间流程语音",
+  "version": "2.1",
+  "voice_standard": {
+    "reference_file": "CMD-001.mp3",
+    "voice_type": "女声",
+    "style": "温和、清晰、专业",
+    "speed": "每分钟120-130字",
+    "volume": "-3dB ~ -6dB",
+    "sample_rate": 48000,
+    "channels": "mono",
+    "format": "MP3",
+    "bitrate": "128kbps"
+  },
+  "tts_engine": "FactoryTTS",
+  "output_path": "/audio/commands/night/",
+  "tasks": [
+    {
+      "id": "CMD-N01",
+      "filename": "CMD-N01.mp3",
+      "text": "夜间阶段开始。请所有玩家闭眼，在桌面中央放置拳头，保持大拇指放下。",
+      "emotion": "calm",
+      "speed": 1.0,
+      "pause_after": 1.0
+    },
+    {
+      "id": "CMD-N02",
+      "filename": "CMD-N02.mp3",
+      "text": "请除了奥伯伦以外的所有坏人睁眼，互相确认彼此身份。",
+      "emotion": "calm",
+      "speed": 1.0,
+      "pause_after": 0.5
+    },
+    {
+      "id": "CMD-N03",
+      "filename": "CMD-N03.mp3",
+      "text": "坏人确认完毕，请闭眼。所有玩家放下大拇指。",
+      "emotion": "calm",
+      "speed": 1.0,
+      "pause_after": 0.5
+    },
+    {
+      "id": "CMD-N05",
+      "filename": "CMD-N05.mp3",
+      "text": "请所有坏人竖起你们的大拇指。梅林请睁眼，观察这些竖起大拇指的坏人，记住他们的位置。请收回大拇指，梅林请闭眼。",
+      "emotion": "calm",
+      "speed": 1.0,
+      "pause_after": 0.5,
+      "note": "5-7人局使用，梅林能看到所有坏人（含奥伯伦）"
+    },
+    {
+      "id": "CMD-N05-M",
+      "filename": "CMD-N05-M.mp3",
+      "text": "请除了莫德雷德以外的所有坏人竖起你们的大拇指。梅林请睁眼，观察这些竖起大拇指的坏人，记住他们的位置。请收回大拇指，梅林请闭眼。",
+      "emotion": "calm",
+      "speed": 1.0,
+      "pause_after": 0.5,
+      "note": "8-10人局使用，梅林看不到莫德雷德"
+    },
+    {
+      "id": "CMD-N09",
+      "filename": "CMD-N09.mp3",
+      "text": "请梅林和莫甘娜竖起你们的大拇指。派西维尔请睁眼，观察这两位玩家，分辨谁是梅林。请收回大拇指，派西维尔请闭眼。",
+      "emotion": "calm",
+      "speed": 1.0,
+      "pause_after": 0.5
+    },
+    {
+      "id": "CMD-N12",
+      "filename": "CMD-N12.mp3",
+      "text": "天亮了，请所有玩家睁眼，夜晚阶段结束，游戏正式开始。",
+      "emotion": "warm",
+      "speed": 1.0,
+      "pause_after": 0.5
+    }
+  ],
+  "total_tasks": 7,
+  "estimated_total_duration": "约45秒"
+}

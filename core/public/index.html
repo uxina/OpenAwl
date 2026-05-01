@@ -1,0 +1,2111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>阿瓦隆・智能主持人</title>
+    <link rel="stylesheet" href="/styles/controller-ux.css">
+    <style>
+        /* 复制提示动画 */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+        }
+        
+        /* 确认对话框样式 */
+        .confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .confirm-dialog {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 360px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+        
+        .confirm-dialog.danger {
+            border-top: 4px solid #e74c3c;
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .confirm-dialog h3 {
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+        
+        .confirm-dialog.danger h3 {
+            color: #e74c3c;
+        }
+        
+        .confirm-dialog p {
+            margin: 0 0 24px 0;
+            font-size: 15px;
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .confirm-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .confirm-buttons .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .confirm-buttons .btn-secondary {
+            background: #ecf0f1;
+            color: #555;
+        }
+        
+        .confirm-buttons .btn-secondary:hover {
+            background: #d5dbdb;
+        }
+        
+        .confirm-buttons .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .confirm-buttons .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .confirm-buttons .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .confirm-buttons .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        /* 倒计时条样式 */
+        .countdown-bar {
+            width: 100%;
+            height: 4px;
+            background: #ecf0f1;
+            border-radius: 2px;
+            margin: 16px 0 8px 0;
+            overflow: hidden;
+        }
+        
+        .countdown-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #667eea);
+            width: 0%;
+            border-radius: 2px;
+        }
+        
+        .countdown-text {
+            text-align: center;
+            font-size: 12px;
+            color: #7f8c8d;
+            margin: 0 0 16px 0 !important;
+        }
+        
+        /* Toast提示样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 10001;
+            opacity: 0;
+            transition: all 0.3s ease;
+            border-left: 4px solid #3498db;
+        }
+        
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-success {
+            border-left-color: #27ae60;
+            background: #d5f4e6;
+        }
+        
+        .toast-error {
+            border-left-color: #e74c3c;
+            background: #fadbd8;
+        }
+        
+        .toast-warning {
+            border-left-color: #f39c12;
+            background: #fdebd0;
+        }
+        
+        .toast-icon {
+            font-size: 20px;
+        }
+        
+        .toast-message {
+            font-size: 14px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        /* 帮助按钮 */
+        .btn-help {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+            margin-left: 12px;
+        }
+        
+        .btn-help:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        /* 语音面板按钮 */
+        .btn-voice-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-left: 12px;
+        }
+        
+        .btn-voice-panel:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* 帮助对话框 */
+        .help-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .help-dialog {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.4s ease;
+        }
+        
+        .help-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .help-header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .help-header p {
+            margin: 8px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .help-content {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: 50vh;
+        }
+        
+        .help-section {
+            margin-bottom: 24px;
+        }
+        
+        .help-section h3 {
+            color: #2c3e50;
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .help-section p {
+            color: #555;
+            line-height: 1.6;
+            margin: 0;
+        }
+        
+        .help-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .help-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        
+        .help-step-number {
+            background: #667eea;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .help-step-content h4 {
+            margin: 0 0 4px 0;
+            color: #2c3e50;
+            font-size: 15px;
+        }
+        
+        .help-step-content p {
+            margin: 0;
+            color: #666;
+            font-size: 13px;
+        }
+        
+        .help-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+        
+        .help-footer .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .help-footer .btn:hover {
+            background: #5a6fd6;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- 顶部固定栏 -->
+        <header class="app-header">
+            <div class="header-main">
+                <a href="/lobby.html" class="btn-lobby" title="返回大厅" style="margin-right: 12px; margin-left: 0;">
+                    <span>🏠</span>
+                </a>
+                <h1>🎮 <span>阿瓦隆</span><span>主持人</span></h1>
+                <div class="room-info">
+                    <span class="room-label">房间号：</span>
+                    <strong id="roomId" class="room-number-display">----</strong>
+                </div>
+            </div>
+            
+            <!-- 流程指示器 -->
+            <div class="phase-indicator">
+                <div class="phase-track">
+                    <div class="phase-progress" id="phaseProgress" style="width: 0%"></div>
+                </div>
+                <div class="phase-labels">
+                    <span class="phase-label active" data-phase="waiting">准备</span>
+                    <span class="phase-label" data-phase="role-confirm">身份</span>
+                    <span class="phase-label" data-phase="night">夜间</span>
+                    <span class="phase-label" data-phase="team-building">组队</span>
+                    <span class="phase-label" data-phase="voting">投票</span>
+                    <span class="phase-label" data-phase="mission">任务</span>
+                    <span class="phase-label" data-phase="assassination">刺杀</span>
+                    <span class="phase-label" data-phase="ended">结束</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button class="btn-help" onclick="showHelpGuide()" title="使用帮助">
+                    <span>❓</span>
+                    <span>帮助</span>
+                </button>
+                <a href="/voice-panel-v2.html" target="_blank" class="btn-voice-panel" title="打开语音面板">
+                    <span>🎙️</span>
+                    <span>语音</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- 主内容区 - 响应式网格布局 -->
+        <main class="app-content">
+            <!-- 房间配置卡片 -->
+            <section class="card config-card">
+                <div class="card-header">
+                    <span>⚙️</span>
+                    <span>房间配置</span>
+                </div>
+                <div class="card-body">
+                    <div class="config-form">
+                        <div class="form-group">
+                            <label for="playerCountSelect">玩家数量</label>
+                            <select id="playerCountSelect" class="form-control">
+                                <option value="5">5人 (3好2坏)</option>
+                                <option value="6">6人 (4好2坏)</option>
+                                <option value="7">7人 (4好3坏)</option>
+                                <option value="8">8人 (5好3坏)</option>
+                                <option value="9">9人 (6好3坏)</option>
+                                <option value="10">10人 (6好4坏)</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" id="createRoomBtn">
+                            <span>🏠</span>
+                            <span>创建房间</span>
+                        </button>
+                    </div>
+                    
+                    <div class="config-info">
+                        <div class="info-item">
+                            <span class="info-label">任务配置</span>
+                            <span class="info-value" id="configInfo">2-3-2-3-3</span>
+                        </div>
+                        <div class="info-item" id="playerLinkContainer" style="display: none;">
+                            <span class="info-label">👤 玩家链接</span>
+                            <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                                <input type="text" id="playerUrlInput" class="room-link-input" value="" readonly style="flex: 1; padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
+                                <button onclick="copyPlayerUrl()" class="btn btn-primary btn-small" style="padding: 6px 12px;">📋复制</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 重置按钮移到房间配置板块 -->
+                    <div class="config-actions" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
+                        <button class="btn btn-danger" id="resetGameBtn" style="width: 100%;">
+                            <span>🔄</span>
+                            <span>重置游戏</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 控制卡片 -->
+            <section class="card control-card">
+                <div class="card-header">
+                    <span>🎮</span>
+                    <span>游戏控制</span>
+                </div>
+                <div class="card-body">
+                    <div class="status-grid">
+                        <div class="status-box">
+                            <span class="status-title">当前阶段</span>
+                            <strong class="status-value" id="currentPhase">等待玩家</strong>
+                        </div>
+                        <div class="status-box">
+                            <span class="status-title">任务轮次</span>
+                            <strong class="status-value" id="currentRound">0/5</strong>
+                        </div>
+                        <div class="status-box">
+                            <span class="status-title">当前队长</span>
+                            <strong class="status-value" id="currentLeaderDisplay">-</strong>
+                        </div>
+                        <div class="status-box">
+                            <span class="status-title">玩家数量</span>
+                            <strong class="status-value" id="playerCountDisplay">0/5</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="startGameBtn" disabled>
+                            <span>▶️</span>
+                            <span>开始/下一阶段</span>
+                        </button>
+                    </div>
+                    
+                    <div class="game-status" id="gameStatus">
+                        等待玩家加入...
+                    </div>
+                </div>
+            </section>
+
+            <!-- 游戏信息卡片 -->
+            <section class="card info-card">
+                <div class="card-header">
+                    <span>📊</span>
+                    <span>游戏信息</span>
+                </div>
+                <div class="card-body">
+                    <div class="info-section">
+                        <h4>阶段详情</h4>
+                        <div class="phase-detail" id="phaseInfo">
+                            等待游戏开始...
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>任务历史</h4>
+                        <div class="history-list" id="missionHistoryList">
+                            <div class="empty-state">
+                                <span class="empty-icon">📋</span>
+                                <p>暂无任务记录</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 玩家列表卡片 -->
+            <section class="card players-card">
+                <div class="card-header">
+                    <span>👥</span>
+                    <span>玩家列表</span>
+                    <span class="badge" id="playerBadge">0</span>
+                </div>
+                <div class="card-body">
+                    <div class="player-list" id="playerManagementList">
+                        <div class="empty-state">
+                            <span class="empty-icon">👤</span>
+                            <p>等待玩家加入...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 投票历史卡片已移除 -->
+        </main>
+
+        <!-- 底部固定按钮栏 -->
+        <footer class="app-footer">
+            <button class="fab-btn" id="fabNextPhase" disabled title="下一阶段">
+                <span>⏭️</span>
+            </button>
+        </footer>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Socket.io 连接
+        const socket = io();
+        let currentRoomId = null;
+        
+        // 存储所有房间信息
+        let roomsMap = new Map(); // roomId -> roomData
+        
+        // 初始化 gameState
+        let gameState = {
+            phase: 'waiting',
+            round: 1,
+            players: [],
+            currentPlayers: 0,
+            missionResults: [],
+            voteHistory: [],
+            currentLeader: 1,
+            consecutiveRejections: 0,
+            teamProposal: null,
+            teamVotes: {},
+            missionVotes: {},
+            isVoting: false,
+            isMission: false,
+            canStartGame: false
+        };
+        
+        // DOM加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('主控端页面加载完成');
+            
+            // 从URL参数读取房间号
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlRoomId = urlParams.get('roomId');
+            const isController = urlParams.get('type') === 'controller';
+            
+            if (urlRoomId && isController) {
+                console.log('[主控端] 从URL读取房间号:', urlRoomId);
+                currentRoomId = urlRoomId;
+                document.getElementById('roomId').textContent = currentRoomId;
+                
+                // 更新玩家链接
+                updatePlayerUrl();
+                
+                // 自动加入房间
+                socket.emit('join-controller', { roomId: currentRoomId });
+            }
+            
+            // 加载上轮配置
+            loadLastConfig();
+            
+            // 绑定事件
+            document.getElementById('playerCountSelect').addEventListener('change', updateConfigInfo);
+            document.getElementById('createRoomBtn').addEventListener('click', createRoom);
+            document.getElementById('startGameBtn').addEventListener('click', handleGameAction);
+            document.getElementById('fabNextPhase').addEventListener('click', handleGameAction);
+            document.getElementById('resetGameBtn').addEventListener('click', resetGame);
+            
+            // 初始化
+            updateConfigInfo();
+            updatePhaseIndicator('waiting');
+            
+            // 首次访问显示引导
+            checkFirstVisit();
+            
+            // 加载服务器上的所有房间
+            loadServerRooms();
+        });
+        
+        // 从服务器加载所有房间
+        async function loadServerRooms() {
+            try {
+                const response = await fetch('/api/rooms');
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    console.log('[房间列表] 从服务器加载房间:', data.data);
+                    
+                    // 将服务器上的房间添加到roomsMap
+                    data.data.forEach(room => {
+                        if (!roomsMap.has(room.roomId)) {
+                            roomsMap.set(room.roomId, {
+                                playerCount: room.currentPlayers || 0,
+                                phase: room.gamePhase || 'waiting',
+                                round: 1,
+                                timestamp: Date.now()
+                            });
+                        }
+                    });
+                    
+                    console.log('[房间列表] 已加载房间数量:', roomsMap.size);
+                }
+            } catch (error) {
+                console.error('[房间列表] 加载失败:', error);
+            }
+        }
+        
+        // 创建房间
+        function createRoom() {
+            const playerCount = parseInt(document.getElementById('playerCountSelect').value);
+            console.log('创建房间，人数:', playerCount);
+            
+            console.log('开始创建房间，人数:', playerCount);
+            socket.emit('room-create', { playerCount }, (response) => {
+                console.log('收到服务器响应:', response);
+                if (response && response.success) {
+                    currentRoomId = response.roomId;
+                    document.getElementById('roomId').textContent = currentRoomId;
+                    
+                    // 保存房间信息到roomsMap
+                    roomsMap.set(currentRoomId, {
+                        playerCount: 0,
+                        phase: 'waiting',
+                        round: 1,
+                        timestamp: Date.now()
+                    });
+                    
+                    // 刷新房间列表（从服务器获取最新列表）
+                    loadServerRooms();
+                    
+                    // 保存配置
+                    localStorage.setItem('lastPlayerCount', playerCount);
+                    
+                    // 启用开始游戏按钮
+                    updateStartButton(0);
+                    
+                    // 设置玩家链接（包含roomid）
+                    const playerUrl = `${window.location.origin}/player-modular.html?roomId=${currentRoomId}`;
+                    console.log('准备设置玩家链接:', playerUrl);
+                    const input = document.getElementById('playerUrlInput');
+                    const playerLinkContainer = document.getElementById('playerLinkContainer');
+                    if (input) {
+                        input.value = playerUrl;
+                        input.style.color = '#333';
+                    }
+                    if (playerLinkContainer) {
+                        playerLinkContainer.style.display = 'flex';
+                    }
+                    
+                    // 显示成功提示（不弹出alert）
+                    const gameStatus = document.getElementById('gameStatus');
+                    if (gameStatus) {
+                        gameStatus.textContent = `房间创建成功！房间号: ${currentRoomId}`;
+                        gameStatus.style.color = '#27ae60';
+                    }
+                } else {
+                    console.error('创建房间失败:', response);
+                    alert('创建房间失败: ' + (response ? response.message : '未知错误'));
+                }
+            });
+        }
+        
+        // 合并的游戏动作处理函数
+        function handleGameAction() {
+            if (!currentRoomId) {
+                showErrorToast('请先创建房间');
+                return;
+            }
+            
+            const playerCount = parseInt(document.getElementById('playerCountDisplay').textContent);
+            const currentPhase = document.getElementById('currentPhase').textContent;
+            const isGameStarted = currentPhase !== '等待玩家' && currentPhase !== '准备阶段';
+            
+            if (!isGameStarted) {
+                // 游戏未开始，执行开始游戏逻辑
+                if (playerCount < 5) {
+                    showErrorToast(`至少需要5名玩家才能开始游戏，当前只有${playerCount}名`);
+                    return;
+                }
+                
+                showConfirmDialog({
+                    title: '开始游戏确认',
+                    message: `当前有 ${playerCount} 名玩家，确定要开始游戏吗？`,
+                    confirmText: '开始游戏',
+                    cancelText: '取消',
+                    onConfirm: () => {
+                        socket.emit('start-game', { roomId: currentRoomId });
+                        showSuccessToast('游戏开始！');
+                        // 更新按钮文字
+                        document.getElementById('startGameBtn').querySelector('span:last-child').textContent = '下一阶段';
+                    }
+                });
+            } else {
+                // 游戏已开始，执行进入下一阶段逻辑
+                showConfirmDialog({
+                    title: '进入下一阶段确认',
+                    message: `当前阶段：${currentPhase}<br>确定要进入下一阶段吗？`,
+                    confirmText: '确认',
+                    cancelText: '取消',
+                    onConfirm: () => {
+                        socket.emit('next-phase', { roomId: currentRoomId });
+                        showInfoToast('进入下一阶段...');
+                    }
+                });
+            }
+        }
+        
+        // 重置游戏 - 添加更严格的二次确认
+        function resetGame() {
+            if (!currentRoomId) {
+                showErrorToast('请先创建房间');
+                return;
+            }
+            
+            // 双重确认
+            showConfirmDialog({
+                title: '⚠️ 警告：重置游戏',
+                message: '重置游戏将清除所有游戏进度！<br><strong>此操作不可撤销！</strong><br><br>确定要重置游戏吗？',
+                confirmText: '确认重置',
+                cancelText: '取消',
+                danger: true,
+                onConfirm: () => {
+                    // 第二次确认
+                    showConfirmDialog({
+                        title: '最终确认',
+                        message: '请再次确认：您真的要重置游戏吗？',
+                        confirmText: '确定重置',
+                        cancelText: '取消',
+                        danger: true,
+                        onConfirm: () => {
+                            socket.emit('reset-game', { roomId: currentRoomId });
+                            showSuccessToast('游戏已重置');
+                        }
+                    });
+                }
+            });
+        }
+        
+        // 显示确认对话框
+        function showConfirmDialog(options) {
+            const overlay = document.createElement('div');
+            overlay.className = 'confirm-overlay';
+            overlay.id = 'confirm-overlay-' + Date.now();
+            
+            // 添加倒计时显示
+            const countdownHtml = options.autoClose !== false ? `
+                <div class="countdown-bar">
+                    <div class="countdown-fill" id="countdown-fill"></div>
+                </div>
+                <p class="countdown-text">3秒后自动确认</p>
+            ` : '';
+            
+            overlay.innerHTML = `
+                <div class="confirm-dialog ${options.danger ? 'danger' : ''}">
+                    <h3>${options.title}</h3>
+                    <p>${options.message}</p>
+                    ${countdownHtml}
+                    <div class="confirm-buttons">
+                        <button class="btn btn-secondary" id="cancelBtn">${options.cancelText || '取消'}</button>
+                        <button class="btn ${options.danger ? 'btn-danger' : 'btn-primary'}" id="confirmBtn">${options.confirmText || '确定'}</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            let autoCloseTimer = null;
+            let countdownInterval = null;
+            let isClosed = false;
+            
+            // 关闭对话框的函数
+            const closeDialog = (confirmed) => {
+                if (isClosed) return;
+                isClosed = true;
+                
+                // 清除定时器
+                if (autoCloseTimer) clearTimeout(autoCloseTimer);
+                if (countdownInterval) clearInterval(countdownInterval);
+                
+                // 移除对话框
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+                
+                // 执行回调
+                if (confirmed && options.onConfirm) {
+                    options.onConfirm();
+                } else if (!confirmed && options.onCancel) {
+                    options.onCancel();
+                }
+            };
+            
+            // 绑定事件
+            overlay.querySelector('#cancelBtn').addEventListener('click', () => {
+                closeDialog(false);
+            });
+            
+            overlay.querySelector('#confirmBtn').addEventListener('click', () => {
+                closeDialog(true);
+            });
+            
+            // 点击遮罩关闭（默认确认）
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeDialog(true);
+                }
+            });
+            
+            // 自动关闭逻辑（默认3秒，默认选择"是"）
+            if (options.autoClose !== false) {
+                const autoCloseDelay = options.autoCloseDelay || 3000;
+                const countdownFill = overlay.querySelector('#countdown-fill');
+                const countdownText = overlay.querySelector('.countdown-text');
+                
+                // 倒计时动画
+                if (countdownFill) {
+                    countdownFill.style.transition = `width ${autoCloseDelay}ms linear`;
+                    setTimeout(() => {
+                        countdownFill.style.width = '100%';
+                    }, 50);
+                }
+                
+                // 更新倒计时文字
+                let remaining = Math.ceil(autoCloseDelay / 1000);
+                if (countdownText) {
+                    countdownInterval = setInterval(() => {
+                        remaining--;
+                        if (remaining > 0 && countdownText) {
+                            countdownText.textContent = `${remaining}秒后自动确认`;
+                        }
+                    }, 1000);
+                }
+                
+                // 自动关闭定时器
+                autoCloseTimer = setTimeout(() => {
+                    closeDialog(true);
+                }, autoCloseDelay);
+            }
+        }
+        
+        // 切换房间选择器显示/隐藏
+        function toggleRoomSelector() {
+            const roomIdDisplay = document.getElementById('roomId');
+            const roomSelector = document.getElementById('roomSelector');
+            
+            if (roomSelector.classList.contains('hidden')) {
+                // 显示选择器，隐藏房间号
+                roomIdDisplay.classList.add('hidden');
+                roomSelector.classList.remove('hidden');
+                roomSelector.focus();
+                updateRoomSelectorOptions();
+            } else {
+                // 隐藏选择器，显示房间号
+                roomSelector.classList.add('hidden');
+                roomIdDisplay.classList.remove('hidden');
+            }
+        }
+        
+        // 更新房间选择器选项
+        function updateRoomSelectorOptions() {
+            const selector = document.getElementById('roomSelector');
+            
+            // 保留第一个默认选项
+            selector.innerHTML = '<option value="">选择房间</option>';
+            
+            // 添加所有已知的房间
+            roomsMap.forEach((roomData, roomId) => {
+                const option = document.createElement('option');
+                option.value = roomId;
+                option.textContent = `${roomId} (${roomData.playerCount || 0}人)`;
+                if (roomId === currentRoomId) {
+                    option.selected = true;
+                }
+                selector.appendChild(option);
+            });
+            
+            // 如果没有房间，添加当前房间（如果有）
+            if (roomsMap.size === 0 && currentRoomId) {
+                const option = document.createElement('option');
+                option.value = currentRoomId;
+                option.textContent = `${currentRoomId} (当前)`;
+                option.selected = true;
+                selector.appendChild(option);
+            }
+        }
+        
+        // 切换房间
+        function switchRoom(newRoomId) {
+            if (!newRoomId || newRoomId === currentRoomId) {
+                toggleRoomSelector();
+                return;
+            }
+            
+            showConfirmDialog({
+                title: '切换房间确认',
+                message: `确定要切换到房间 ${newRoomId} 吗？<br>当前房间的游戏进度将保留。`,
+                confirmText: '切换',
+                cancelText: '取消',
+                onConfirm: () => {
+                    // 保存当前房间数据
+                    if (currentRoomId) {
+                        roomsMap.set(currentRoomId, {
+                            playerCount: gameState.players.length,
+                            phase: gameState.phase,
+                            round: gameState.round,
+                            timestamp: Date.now()
+                        });
+                    }
+                    
+                    // 切换到新房间
+                    currentRoomId = newRoomId;
+                    
+                    // 如果新房间有缓存数据，恢复它
+                    if (roomsMap.has(newRoomId)) {
+                        const roomData = roomsMap.get(newRoomId);
+                        gameState.round = roomData.round || 1;
+                        gameState.phase = roomData.phase || 'waiting';
+                        gameState.currentPlayers = roomData.playerCount || 0;
+                    } else {
+                        // 重置游戏状态
+                        resetGameState();
+                    }
+                    
+                    // 更新UI
+                    document.getElementById('roomId').textContent = newRoomId;
+                    document.getElementById('playerUrlInput').value = `${window.location.origin}/player-modular.html?roomId=${newRoomId}`;
+                    
+                    // 加入新房间
+                    socket.emit('join-controller', { roomId: newRoomId });
+                    
+                    showSuccessToast(`已切换到房间 ${newRoomId}`);
+                    updateUI();
+                    toggleRoomSelector();
+                }
+            });
+        }
+        
+        // 重置游戏状态（不重置房间）
+        function resetGameState() {
+            gameState = {
+                phase: 'waiting',
+                round: 1,
+                players: [],
+                currentPlayers: 0,
+                missionResults: [],
+                voteHistory: [],
+                currentLeader: 1,
+                consecutiveRejections: 0,
+                teamProposal: null,
+                teamVotes: {},
+                missionVotes: {},
+                isVoting: false,
+                isMission: false,
+                canStartGame: false
+            };
+        }
+        
+        // 显示成功提示
+        function showSuccessToast(message) {
+            showToast(message, 'success');
+        }
+        
+        // 显示错误提示
+        function showErrorToast(message) {
+            showToast(message, 'error');
+        }
+        
+        // 显示信息提示
+        function showInfoToast(message) {
+            showToast(message, 'info');
+        }
+        
+        // 通用Toast提示
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️',
+                warning: '⚠️'
+            };
+            
+            toast.innerHTML = `
+                <span class="toast-icon">${icons[type] || 'ℹ️'}</span>
+                <span class="toast-message">${message}</span>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // 触发动画
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // 自动移除
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // 显示帮助引导
+        function showHelpGuide() {
+            const overlay = document.createElement('div');
+            overlay.className = 'help-overlay';
+            overlay.innerHTML = `
+                <div class="help-dialog">
+                    <div class="help-header">
+                        <h2>📖 使用帮助</h2>
+                        <p>阿瓦隆智能主持人系统使用指南</p>
+                    </div>
+                    <div class="help-content">
+                        <div class="help-section">
+                            <h3>🎯 游戏流程</h3>
+                            <div class="help-steps">
+                                <div class="help-step">
+                                    <div class="help-step-number">1</div>
+                                    <div class="help-step-content">
+                                        <h4>创建房间</h4>
+                                        <p>选择游戏人数（5-10人），点击"创建房间"按钮</p>
+                                    </div>
+                                </div>
+                                <div class="help-step">
+                                    <div class="help-step-number">2</div>
+                                    <div class="help-step-content">
+                                        <h4>分享房间</h4>
+                                        <p>复制玩家链接分享给其他玩家，等待玩家加入</p>
+                                    </div>
+                                </div>
+                                <div class="help-step">
+                                    <div class="help-step-number">3</div>
+                                    <div class="help-step-content">
+                                        <h4>开始游戏</h4>
+                                        <p>所有玩家准备就绪后，点击"开始游戏"</p>
+                                    </div>
+                                </div>
+                                <div class="help-step">
+                                    <div class="help-step-number">4</div>
+                                    <div class="help-step-content">
+                                        <h4>控制流程</h4>
+                                        <p>使用"下一阶段"按钮推进游戏流程，或点击悬浮按钮快速操作</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="help-section">
+                            <h3>💡 操作提示</h3>
+                            <div class="help-steps">
+                                <div class="help-step">
+                                    <div class="help-step-number">💡</div>
+                                    <div class="help-step-content">
+                                        <h4>关键操作确认</h4>
+                                        <p>开始游戏、进入下一阶段、重置游戏等关键操作需要二次确认，防止误操作</p>
+                                    </div>
+                                </div>
+                                <div class="help-step">
+                                    <div class="help-step-number">💡</div>
+                                    <div class="help-step-content">
+                                        <h4>流程指示器</h4>
+                                        <p>顶部流程条显示当前游戏阶段，帮助你了解游戏进度</p>
+                                    </div>
+                                </div>
+                                <div class="help-step">
+                                    <div class="help-step-number">💡</div>
+                                    <div class="help-step-content">
+                                        <h4>错误提示</h4>
+                                        <p>操作有误时会显示红色提示，成功操作会显示绿色提示</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="help-section">
+                            <h3>⚠️ 注意事项</h3>
+                            <p>• 游戏开始后请勿刷新页面，否则可能丢失游戏进度<br>
+                               • 重置游戏会清除所有进度，请谨慎操作<br>
+                               • 建议所有玩家就位后再开始游戏</p>
+                        </div>
+                    </div>
+                    <div class="help-footer">
+                        <button class="btn" onclick="this.closest('.help-overlay').remove()">我知道了</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // 点击遮罩关闭
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            });
+        }
+        
+        // 首次访问显示引导
+        function checkFirstVisit() {
+            const hasVisited = localStorage.getItem('avalon_host_visited');
+            if (!hasVisited) {
+                setTimeout(() => {
+                    showHelpGuide();
+                    localStorage.setItem('avalon_host_visited', 'true');
+                }, 1000);
+            }
+        }
+        
+        // 更新配置信息
+        function updateConfigInfo() {
+            const playerCount = parseInt(document.getElementById('playerCountSelect').value);
+            const missionConfig = getMissionConfig(playerCount);
+            document.getElementById('configInfo').textContent = missionConfig.join('-');
+        }
+        
+        // 更新玩家页面链接
+        function updatePlayerUrl() {
+            const roomId = document.getElementById('roomId').textContent;
+            const playerUrlInput = document.getElementById('playerUrlInput');
+            const playerLinkContainer = document.getElementById('playerLinkContainer');
+            
+            if (roomId && roomId !== '----') {
+                const playerUrl = `${window.location.origin}/player-modular.html?roomId=${roomId}`;
+                if (playerUrlInput) playerUrlInput.value = playerUrl;
+                if (playerLinkContainer) playerLinkContainer.style.display = 'flex';
+                console.log('[主控端] 玩家链接已更新:', playerUrl);
+            } else {
+                if (playerUrlInput) playerUrlInput.value = '';
+                if (playerLinkContainer) playerLinkContainer.style.display = 'none';
+            }
+        }
+        
+        // 获取任务配置
+        function getMissionConfig(playerCount) {
+            const configs = {
+                5: [2, 3, 2, 3, 3],
+                6: [2, 3, 4, 3, 4],
+                7: [2, 3, 3, 4, 4],
+                8: [3, 4, 4, 5, 5],
+                9: [3, 4, 4, 5, 5],
+                10: [3, 4, 4, 5, 5]
+            };
+            return configs[playerCount] || configs[5];
+        }
+        
+        // 统一更新UI
+        function updateUI() {
+            // 更新玩家数量显示
+            const playerCount = gameState.currentPlayers || 0;
+            const targetCount = parseInt(document.getElementById('playerCountSelect').value) || 5;
+            
+            document.getElementById('playerCountDisplay').textContent = `${playerCount}/${targetCount}`;
+            document.getElementById('playerBadge').textContent = playerCount;
+            
+            // 更新当前阶段显示
+            const phaseNames = {
+                'waiting': '等待玩家',
+                'role-confirm': '身份确认',
+                'night': '夜间阶段',
+                'team-building': '队长组队',
+                'voting': '投票阶段',
+                'mission': '任务执行',
+                'assassination': '刺杀阶段',
+                'ended': '游戏结束'
+            };
+            document.getElementById('currentPhase').textContent = phaseNames[gameState.phase] || gameState.phase;
+            
+            // 更新轮次显示
+            document.getElementById('currentRound').textContent = `${gameState.round}/5`;
+            
+            // 更新玩家列表
+            updatePlayerList(gameState.players);
+        }
+        
+        // 更新开始游戏按钮
+        function updateStartButton(playerCount) {
+            const startBtn = document.getElementById('startGameBtn');
+            const targetCount = parseInt(document.getElementById('playerCountSelect').value);
+            const countDisplay = document.getElementById('playerCountDisplay');
+            
+            countDisplay.textContent = `${playerCount}/${targetCount}`;
+            document.getElementById('playerBadge').textContent = playerCount;
+            
+            if (playerCount >= targetCount && playerCount >= 5) {
+                startBtn.disabled = false;
+            } else {
+                startBtn.disabled = true;
+            }
+        }
+        
+        // 更新流程指示器
+        function updatePhaseIndicator(currentPhase) {
+            const phaseOrder = ['waiting', 'role-confirm', 'night', 'team-building', 'voting', 'mission', 'assassination', 'ended'];
+            const currentIndex = phaseOrder.indexOf(currentPhase);
+            const progress = ((currentIndex + 1) / phaseOrder.length) * 100;
+            
+            document.getElementById('phaseProgress').style.width = `${progress}%`;
+            
+            document.querySelectorAll('.phase-label').forEach((label, index) => {
+                label.classList.remove('active', 'completed');
+                if (index === currentIndex) {
+                    label.classList.add('active');
+                } else if (index < currentIndex) {
+                    label.classList.add('completed');
+                }
+            });
+        }
+        
+        // 更新游戏状态
+        function updateGameState(phase, description) {
+            console.log('[主控端] updateGameState 被调用:', phase, description);
+            const currentPhase = document.getElementById('currentPhase');
+            const gameStatus = document.getElementById('gameStatus');
+            const phaseInfo = document.getElementById('phaseInfo');
+            
+            if (currentPhase) currentPhase.textContent = getPhaseName(phase);
+            if (gameStatus) gameStatus.textContent = description;
+            if (phaseInfo) {
+                phaseInfo.textContent = description;
+                console.log('[主控端] phaseInfo 已更新为:', description);
+            } else {
+                console.error('[主控端] 错误: 找不到 phaseInfo 元素!');
+            }
+            updatePhaseIndicator(phase);
+        }
+        
+        // 获取阶段名称
+        function getPhaseName(phase) {
+            const names = {
+                'waiting': '等待玩家',
+                'role-confirm': '身份确认',
+                'night': '夜间阶段',
+                'team-building': '组队阶段',
+                'voting': '投票阶段',
+                'mission': '任务阶段',
+                'assassination': '刺杀阶段',
+                'ended': '游戏结束'
+            };
+            return names[phase] || phase;
+        }
+        
+        // 更新玩家列表
+        function updatePlayerList(players, offlinePlayers = []) {
+            const listEl = document.getElementById('playerManagementList');
+            
+            if (players.length === 0) {
+                listEl.innerHTML = `
+                    <div class="empty-state">
+                        <span class="empty-icon">👤</span>
+                        <p>等待玩家加入...</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 创建离线玩家ID集合
+            const offlineIds = new Set(offlinePlayers.map(op => op.playerId));
+            
+            listEl.innerHTML = players.map((p, index) => {
+                const isOffline = offlineIds.has(p.id);
+                const avatarText = p.name.charAt(0).toUpperCase();
+                const roleText = p.role || '?';
+                
+                return `
+                    <div class="player-item ${isOffline ? 'offline' : ''}">
+                        <div class="player-avatar">${avatarText}</div>
+                        <div class="player-info">
+                            <div class="player-name">${p.name}${isOffline ? ' (离线)' : ''}</div>
+                            <div class="player-role">身份: ${roleText}</div>
+                        </div>
+                        <span class="player-status ${isOffline ? 'offline' : 'online'}">
+                            ${isOffline ? '离线' : '在线'}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Socket事件监听
+        socket.on('room-created', (data) => {
+            console.log('房间创建成功:', data);
+        });
+        
+        // 主控端成功加入房间
+        socket.on('room-joined', (data) => {
+            console.log('[主控端] 加入房间:', data);
+            
+            // 更新gameState - 恢复完整的游戏状态
+            gameState.players = data.players || [];
+            gameState.currentPlayers = data.playerCount || 0;
+            gameState.phase = data.gamePhase || 'waiting';
+            gameState.round = data.currentRound || 1;
+            gameState.missionResults = data.missionResults || [];
+            gameState.consecutiveRejections = data.consecutiveRejections || 0;
+            gameState.teamVotes = data.teamVotes || {};
+            gameState.currentLeader = data.leader || null;
+            
+            // 更新UI
+            updateStartButton(data.playerCount);
+            updatePlayerList(data.players);
+            updateUI();
+            
+            // 更新任务历史显示
+            if (data.missionResults && data.missionResults.length > 0) {
+                updateMissionHistory(data.missionResults);
+                updateMissionRounds(data.missionResults, data.currentRound);
+            }
+            
+            // 更新轮次显示
+            if (data.currentRound) {
+                document.getElementById('currentRound').textContent = `${data.currentRound}/5`;
+            }
+            
+            // 更新队长显示
+            if (data.leader) {
+                document.getElementById('currentLeaderDisplay').textContent = data.leader;
+            }
+            
+            // 更新玩家链接
+            updatePlayerUrl();
+            
+            // 更新玩家链接显示容器
+            const playerLinkContainer = document.getElementById('playerLinkContainer');
+            if (playerLinkContainer && data.roomId) {
+                playerLinkContainer.style.display = 'flex';
+            }
+            
+            // 更新阶段指示器
+            updatePhaseIndicator(data.gamePhase || 'waiting');
+            
+            // 更新阶段描述
+            updateGameState(data.gamePhase || 'waiting', getPhaseDescription(data.gamePhase || 'waiting'));
+            
+            showSuccessToast(`已加入房间 ${data.roomId}，当前${data.playerCount}/${data.configuredCount}人`);
+        });
+        
+        socket.on('player-joined', (data) => {
+            console.log('玩家加入:', data);
+            
+            // 更新gameState中的玩家信息
+            gameState.players = data.players || [];
+            gameState.currentPlayers = data.playerCount || gameState.players.length;
+            
+            // 更新UI
+            updateStartButton(data.playerCount);
+            updatePlayerList(data.players);
+            updateUI();
+            
+            // 如果人数已满，启用开始按钮
+            if (data.playerCount >= 5) {
+                document.getElementById('startGameBtn').disabled = false;
+                showSuccessToast(`人数已满 (${data.playerCount}/5)，可以开始游戏！`);
+            }
+        });
+        
+        // 主控端专用：玩家加入事件
+        socket.on('controller-player-joined', (data) => {
+            console.log('[主控端] 玩家加入:', data);
+            
+            // 更新gameState中的玩家信息
+            gameState.players = data.players || [];
+            gameState.currentPlayers = data.playerCount || gameState.players.length;
+            
+            // 更新roomsMap中的玩家数量
+            if (currentRoomId && roomsMap.has(currentRoomId)) {
+                const roomData = roomsMap.get(currentRoomId);
+                roomData.playerCount = data.playerCount || gameState.currentPlayers;
+                roomsMap.set(currentRoomId, roomData);
+                console.log('[主控端] 更新roomsMap玩家数量:', currentRoomId, roomData.playerCount);
+            }
+            
+            // 更新UI
+            updateStartButton(data.playerCount);
+            updatePlayerList(data.players);
+            updateUI();
+            
+            // 更新游戏状态提示
+            const gameStatus = document.getElementById('gameStatus');
+            if (gameStatus) {
+                gameStatus.textContent = `玩家 ${data.playerName} 加入，当前 ${data.playerCount}/${data.configuredCount} 人`;
+                gameStatus.style.color = '#27ae60';
+            }
+            
+            // 如果人数已满，启用开始按钮
+            if (data.playerCount >= data.configuredCount) {
+                document.getElementById('startGameBtn').disabled = false;
+                showSuccessToast(`人数已满 (${data.playerCount}/${data.configuredCount})，可以开始游戏！`);
+            }
+        });
+        
+        socket.on('controller-player-offline', (data) => {
+            console.log('玩家离线:', data);
+            // 更新在线玩家列表（排除离线玩家）
+            updatePlayerList(data.players, data.offlinePlayers);
+            // 更新开始按钮状态
+            const onlineCount = data.players.filter(p => !data.offlinePlayers?.some(op => op.playerId === p.id)).length;
+            updateStartButton(onlineCount);
+        });
+        
+        socket.on('controller-player-reconnected', (data) => {
+            console.log('玩家重连:', data);
+            // 更新玩家列表
+            updatePlayerList(data.players, data.offlinePlayers);
+            // 更新开始按钮状态
+            const onlineCount = data.players.filter(p => !data.offlinePlayers?.some(op => op.playerId === p.id)).length;
+            updateStartButton(onlineCount);
+        });
+        
+        socket.on('controller-player-left', (data) => {
+            console.log('玩家离开:', data);
+            
+            // 更新roomsMap中的玩家数量
+            if (currentRoomId && roomsMap.has(currentRoomId)) {
+                const roomData = roomsMap.get(currentRoomId);
+                roomData.playerCount = data.playerCount || 0;
+                roomsMap.set(currentRoomId, roomData);
+                console.log('[主控端] 更新roomsMap玩家数量(离开):', currentRoomId, roomData.playerCount);
+            }
+            
+            updateStartButton(data.playerCount);
+            updatePlayerList(data.players);
+        });
+        
+        socket.on('game-started', (data) => {
+            console.log('游戏开始:', data);
+            updateGameState('role-confirm', '等待玩家确认身份（主控可强制推进）');
+            document.getElementById('startGameBtn').disabled = true;
+            document.getElementById('nextPhaseBtn').disabled = false;
+            document.getElementById('fabNextPhase').disabled = false;
+            document.getElementById('currentRound').textContent = '1/5';
+            
+            // 初始化5轮任务状态显示
+            updateMissionRounds([], 1);
+        });
+
+        // 监听主控端角色分配完成事件（第5个玩家加入时触发）
+        socket.on('controller-roles-assigned', (data) => {
+            console.log('角色分配完成:', data);
+            
+            // 更新gameState
+            gameState.players = data.players || [];
+            gameState.currentPlayers = data.players ? data.players.length : 0;
+            gameState.phase = 'role-confirm';
+            
+            // 更新UI
+            updateGameState('role-confirm', '等待玩家确认身份（主控可强制推进）');
+            updatePlayerList(data.players);
+            updateStartButton(gameState.currentPlayers);
+            
+            // 启用下一阶段按钮
+            document.getElementById('startGameBtn').disabled = true;
+            document.getElementById('fabNextPhase').disabled = false;
+            
+            showSuccessToast(`角色分配完成！${gameState.currentPlayers}名玩家已加入`);
+        });
+
+        socket.on('controller-phase-changed', (data) => {
+            console.log('[主控端] ==================== controller-phase-changed ====================');
+            console.log('[主控端] 时间戳:', Date.now());
+            console.log('[主控端] 阶段变更:', data);
+            console.log('[主控端] gamePhase:', data.gamePhase);
+            console.log('[主控端] missionResults:', data.missionResults);
+            console.log('[主控端] teamVotes:', data.teamVotes);
+            console.log('[主控端] =================================================================');
+            // 服务器发送的是 gamePhase 字段
+            const gamePhase = data.gamePhase;
+            
+            // 获取当前显示的阶段
+            const currentPhaseEl = document.getElementById('currentPhase');
+            const currentPhaseText = currentPhaseEl ? currentPhaseEl.textContent : '';
+            console.log('[主控端] 当前显示阶段:', currentPhaseText, '新阶段:', gamePhase);
+            
+            // 先更新任务历史（无论阶段是否回退，都要更新任务历史）
+            console.log('[主控端] 检查 missionResults:', data.missionResults, '长度:', data.missionResults?.length);
+            if (data.missionResults && data.missionResults.length > 0) {
+                console.log('[主控端] 调用 updateMissionHistory');
+                updateMissionHistory(data.missionResults);
+                updateMissionRounds(data.missionResults, data.round);
+            } else {
+                console.log('[主控端] missionResults 为空，不更新任务历史');
+            }
+            
+            // 如果当前是任务阶段，不要回退到组队阶段（但任务历史已经更新）
+            if ((currentPhaseText === '任务' || currentPhaseText === '任务阶段') && gamePhase === 'team-building') {
+                console.log('[主控端] 阻止阶段回退: 任务 -> 组队，但任务历史已更新');
+                return;
+            }
+            
+            console.log('[主控端] controller-phase-changed 更新阶段为:', gamePhase, '描述:', getPhaseDescription(gamePhase));
+            updateGameState(gamePhase, getPhaseDescription(gamePhase));
+            if (data.round) {
+                document.getElementById('currentRound').textContent = `${data.round}/5`;
+            }
+            if (data.leader) {
+                document.getElementById('currentLeaderDisplay').textContent = data.leader;
+            }
+
+            // 根据阶段启用/禁用下一阶段按钮
+            // 只有 role-confirm 和 night 阶段可以由主控推进
+            const canAdvance = ['role-confirm', 'night'].includes(gamePhase);
+            const nextPhaseBtn = document.getElementById('nextPhaseBtn');
+            const fabNextPhase = document.getElementById('fabNextPhase');
+            if (nextPhaseBtn) nextPhaseBtn.disabled = !canAdvance;
+            if (fabNextPhase) fabNextPhase.disabled = !canAdvance;
+            
+            // 清除投票进度显示（新阶段开始时）
+            if (gamePhase !== 'voting') {
+                hideVoteProgress();
+            }
+        });
+        
+        // 监听投票进度更新
+        socket.on('controller-vote-progress', (data) => {
+            console.log('投票进度更新:', data);
+            updateVoteProgress(data);
+        });
+        
+        // 监听投票完成事件
+        socket.on('controller-vote-completed', (data) => {
+            console.log('[主控端] ==================== controller-vote-completed ====================');
+            console.log('[主控端] 时间戳:', Date.now());
+            console.log('[主控端] 收到 controller-vote-completed 事件:', data);
+            console.log('[主控端] gamePhase:', data.gamePhase);
+            console.log('[主控端] teamVotes:', data.teamVotes);
+            console.log('[主控端] approvePlayers:', data.approvePlayers);
+            console.log('[主控端] rejectPlayers:', data.rejectPlayers);
+            console.log('[主控端] players:', data.players);
+            console.log('[主控端] =================================================================');
+            updateVoteHistory(data);
+            
+            // 投票完成后清除投票进度显示
+            hideVoteProgress();
+            
+            // 更新阶段显示（投票完成后进入任务阶段或重新组队）
+            const gamePhase = data.gamePhase;
+            console.log('[主控端] 投票完成，更新阶段为:', gamePhase, '描述:', getPhaseDescription(gamePhase));
+            if (gamePhase) {
+                updateGameState(gamePhase, getPhaseDescription(gamePhase));
+                updatePhaseIndicator(gamePhase);
+            } else {
+                console.error('[主控端] 错误: gamePhase 为空!');
+            }
+            
+            // 更新轮次显示
+            if (data.round) {
+                document.getElementById('currentRound').textContent = `${data.round}/5`;
+            }
+            
+            // 初始化5轮任务状态显示（投票通过进入任务阶段时）
+            if (data.gamePhase === 'mission') {
+                const missionResults = data.missionResults || [];
+                updateMissionRounds(missionResults, data.round);
+            }
+            
+            // 更新队长显示
+            if (data.leader) {
+                document.getElementById('currentLeaderDisplay').textContent = data.leader;
+            }
+        });
+        
+        // 监听任务完成事件
+        socket.on('controller-mission-completed', (data) => {
+            console.log('[主控端] 收到 controller-mission-completed 事件:', data);
+            console.log('[主控端] 任务结果:', data.missionResult);
+            console.log('[主控端] 当前阶段:', data.gamePhase);
+            
+            // 更新任务历史
+            if (data.missionResults) {
+                updateMissionHistory(data.missionResults);
+                updateMissionRounds(data.missionResults, data.round);
+            }
+            
+            // 更新当前阶段显示
+            const gamePhase = data.gamePhase;
+            if (gamePhase) {
+                updateGameState(gamePhase, getPhaseDescription(gamePhase));
+            }
+            
+            // 更新轮次显示
+            if (data.round) {
+                document.getElementById('currentRound').textContent = `${data.round}/5`;
+            }
+            
+            // 更新队长显示
+            if (data.leader) {
+                document.getElementById('currentLeaderDisplay').textContent = data.leader;
+            }
+            
+            // 根据阶段启用/禁用下一阶段按钮
+            const canAdvance = ['role-confirm', 'night'].includes(gamePhase);
+            document.getElementById('nextPhaseBtn').disabled = !canAdvance;
+            document.getElementById('fabNextPhase').disabled = !canAdvance;
+        });
+        
+        // 更新投票进度显示
+        function updateVoteProgress(data) {
+            const gameStatus = document.getElementById('gameStatus');
+            if (!gameStatus) return;
+            
+            const { votedCount, totalCount, remaining } = data;
+            const progressPercent = Math.round((votedCount / totalCount) * 100);
+            
+            // 创建或更新投票进度元素
+            let voteProgressEl = document.getElementById('voteProgressDisplay');
+            if (!voteProgressEl) {
+                voteProgressEl = document.createElement('div');
+                voteProgressEl.id = 'voteProgressDisplay';
+                voteProgressEl.className = 'vote-progress-display';
+                gameStatus.parentNode.insertBefore(voteProgressEl, gameStatus.nextSibling);
+            }
+            
+            voteProgressEl.innerHTML = `
+                <div class="vote-progress-header">
+                    <span class="vote-progress-title">🗳️ 投票进度</span>
+                    <span class="vote-progress-count">${votedCount}/${totalCount}</span>
+                </div>
+                <div class="vote-progress-bar">
+                    <div class="vote-progress-fill" style="width: ${progressPercent}%;"></div>
+                </div>
+                <div class="vote-progress-hint">
+                    ${remaining > 0 ? `还需 ${remaining} 人投票` : '投票即将完成...'}
+                </div>
+            `;
+        }
+        
+        // 隐藏投票进度
+        function hideVoteProgress() {
+            const voteProgressEl = document.getElementById('voteProgressDisplay');
+            if (voteProgressEl) {
+                voteProgressEl.remove();
+            }
+        }
+        
+        // 更新投票历史显示
+        function updateVoteHistory(data) {
+            console.log('[主控端] updateVoteHistory 被调用:', data);
+            const listEl = document.getElementById('voteHistoryList');
+            if (!listEl) {
+                console.log('[主控端] voteHistoryList 元素不存在，跳过投票历史更新');
+                return;
+            }
+            
+            // 获取投票信息
+            const teamVotes = data.teamVotes || {};
+            const approvePlayers = data.approvePlayers || [];
+            const rejectPlayers = data.rejectPlayers || [];
+            const players = data.players || [];
+            
+            // 计算赞成和反对票数
+            const approveCount = Object.values(teamVotes).filter(v => v === 'approve').length;
+            const rejectCount = Object.values(teamVotes).filter(v => v === 'reject').length;
+            
+            // 判断结果
+            const isSuccess = approveCount > rejectCount;
+            const resultIcon = isSuccess ? '✅' : '❌';
+            const resultText = isSuccess ? '组队成功' : '组队失败';
+            const resultClass = isSuccess ? 'success' : 'fail';
+            
+            // 构建投票详情HTML
+            let voteDetailsHtml = '';
+            
+            if (approvePlayers.length > 0) {
+                voteDetailsHtml += `<div>👍 赞成: ${approvePlayers.join('、')}</div>`;
+            }
+            if (rejectPlayers.length > 0) {
+                voteDetailsHtml += `<div>👎 反对: ${rejectPlayers.join('、')}</div>`;
+            }
+            
+            // 计算弃权人数
+            const votedPlayerIds = Object.keys(teamVotes);
+            const abstainPlayers = players
+                .filter(p => !votedPlayerIds.includes(p.id))
+                .map(p => p.name);
+            if (abstainPlayers.length > 0) {
+                voteDetailsHtml += `<div>😐 弃权: ${abstainPlayers.join('、')}</div>`;
+            }
+            
+            // 创建投票历史项
+            const voteItem = document.createElement('div');
+            voteItem.className = `vote-item ${resultClass}`;
+            voteItem.innerHTML = `
+                <div class="vote-header">
+                    <span>${resultIcon} ${resultText}</span>
+                    <span>${approveCount}赞成 ${rejectCount}反对</span>
+                </div>
+                <div class="vote-details">${voteDetailsHtml}</div>
+            `;
+            
+            // 移除空状态提示
+            const emptyState = listEl.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            // 添加到列表开头
+            listEl.insertBefore(voteItem, listEl.firstChild);
+        }
+        
+        // 更新任务历史显示
+        function updateMissionHistory(missionResults) {
+            console.log('[主控端] updateMissionHistory 被调用:', missionResults);
+            const listEl = document.getElementById('missionHistoryList');
+            if (!missionResults || missionResults.length === 0) {
+                listEl.innerHTML = `
+                    <div class="empty-state">
+                        <span class="empty-icon">📋</span>
+                        <p>暂无任务记录</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const html = missionResults.map(result => {
+                console.log('[主控端] 处理任务结果:', result);
+                const isSuccess = result.result === 'success';
+                const resultIcon = isSuccess ? '✅' : '❌';
+                const resultText = isSuccess ? '任务成功' : '任务失败';
+                const resultClass = isSuccess ? 'success' : 'fail';
+                
+                // 构建组队投票信息
+                let voteDetailsHtml = '';
+                if (result.approvePlayers || result.rejectPlayers) {
+                    const approveText = result.approvePlayers?.length > 0 
+                        ? `👍 赞成(${result.approveCount}): ${result.approvePlayers.join(', ')}` 
+                        : '';
+                    const rejectText = result.rejectPlayers?.length > 0 
+                        ? `👎 反对(${result.rejectCount}): ${result.rejectPlayers.join(', ')}` 
+                        : '';
+                    voteDetailsHtml = [approveText, rejectText].filter(Boolean).join('<br>');
+                }
+                
+                // 构建任务票型
+                let missionVoteHtml = '';
+                if (result.failCount !== undefined) {
+                    const successCount = result.teamSize - result.failCount;
+                    missionVoteHtml = `🎯 任务票型: ${successCount}成功 ${result.failCount}失败`;
+                }
+                
+                return `
+                    <div class="mission-item ${resultClass}">
+                        <div class="mission-header">
+                            <span>第${result.round}轮 ${resultIcon}</span>
+                            <span>${resultText}</span>
+                        </div>
+                        <div class="mission-details">
+                            <div>👥 队员: ${result.teamMembers?.join(', ') || '-'}</div>
+                            ${voteDetailsHtml ? `<div class="vote-info">${voteDetailsHtml}</div>` : ''}
+                            ${missionVoteHtml ? `<div>${missionVoteHtml}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            listEl.innerHTML = html;
+        }
+        
+        // 更新5轮任务状态显示
+        function updateMissionRounds(missionResults, currentRound) {
+            const playerCount = parseInt(document.getElementById('playerCountSelect').value) || 5;
+            const missionConfig = getMissionConfig(playerCount);
+            
+            // 创建或更新5轮任务状态容器
+            let roundsContainer = document.getElementById('missionRounds');
+            if (!roundsContainer) {
+                // 在控制卡片中添加5轮任务状态
+                const controlCard = document.querySelector('.control-card .card-body');
+                roundsContainer = document.createElement('div');
+                roundsContainer.id = 'missionRounds';
+                roundsContainer.className = 'mission-rounds';
+                controlCard.insertBefore(roundsContainer, controlCard.querySelector('.action-buttons'));
+            }
+            
+            roundsContainer.innerHTML = `
+                <h4>📊 5轮任务状态</h4>
+                <div class="rounds-grid">
+                    ${[1, 2, 3, 4, 5].map(round => {
+                        const result = missionResults.find(r => r.round === round);
+                        const requiredSize = missionConfig[round - 1] || '-';
+                        
+                        let statusClass = 'pending';
+                        let statusText = `${requiredSize}人`;
+                        let statusIcon = '⏳';
+                        
+                        if (result) {
+                            if (result.result === 'success') {
+                                statusClass = 'success';
+                                statusText = '✓';
+                                statusIcon = '✅';
+                            } else {
+                                statusClass = 'fail';
+                                statusText = '✗';
+                                statusIcon = '❌';
+                            }
+                        } else if (round === currentRound) {
+                            statusClass = 'current';
+                            statusText = `${requiredSize}人`;
+                            statusIcon = '🔄';
+                        }
+                        
+                        return `
+                            <div class="round-box ${statusClass}">
+                                <div class="round-number">第${round}轮</div>
+                                <div class="round-status">${statusIcon}</div>
+                                <div class="round-size">${statusText}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+        
+        socket.on('all-players-ready', (data) => {
+            // 使用Toast提示替代alert，不阻塞用户操作
+            showInfoToast(data.message);
+            
+            // 同时在游戏状态区域显示提示
+            const gameStatus = document.getElementById('gameStatus');
+            if (gameStatus) {
+                gameStatus.innerHTML = `✅ ${data.message}`;
+                gameStatus.style.color = '#27ae60';
+            }
+        });
+        
+        // 监听游戏重置中
+        socket.on('game-resetting', (data) => {
+            console.log('[主控端] 收到游戏重置中通知:', data);
+            showInfoToast(data.message || '游戏重置中...');
+        });
+        
+        // 监听游戏重置成功
+        socket.on('game-reset-success', (data) => {
+            console.log('[主控端] 游戏重置成功:', data);
+            resetUI();
+            showSuccessToast(data.message || '游戏已重置');
+            
+            // 更新房间选择器
+            if (data.configuredPlayerCount) {
+                document.getElementById('playerCountSelect').value = data.configuredPlayerCount;
+            }
+        });
+        
+        // 监听强制断开（游戏重置时）
+        socket.on('force-disconnect', (data) => {
+            console.log('[主控端] 收到强制断开通知:', data);
+            showWarningToast(data.message || '游戏已重置，请重新加入');
+            
+            // 重置UI
+            resetUI();
+            
+            // 可选：刷新页面或显示重新加入按钮
+            setTimeout(() => {
+                if (confirm('游戏已重置，是否刷新页面重新加入？')) {
+                    window.location.reload();
+                }
+            }, 2000);
+        });
+        
+        // 重置UI
+        function resetUI() {
+            console.log('[主控端] 重置UI开始');
+            
+            // 安全地重置游戏状态显示
+            const currentPhase = document.getElementById('currentPhase');
+            const currentRound = document.getElementById('currentRound');
+            const currentLeaderDisplay = document.getElementById('currentLeaderDisplay');
+            const gameStatus = document.getElementById('gameStatus');
+            const phaseInfo = document.getElementById('phaseInfo');
+            const startGameBtn = document.getElementById('startGameBtn');
+            const nextPhaseBtn = document.getElementById('nextPhaseBtn');
+            const missionHistoryList = document.getElementById('missionHistoryList');
+            
+            if (currentPhase) currentPhase.textContent = '等待玩家';
+            if (currentRound) currentRound.textContent = '0/5';
+            if (currentLeaderDisplay) currentLeaderDisplay.textContent = '-';
+            if (gameStatus) {
+                gameStatus.textContent = '游戏已重置，等待开始...';
+                gameStatus.style.color = '#333';
+            }
+            if (phaseInfo) phaseInfo.textContent = '等待游戏开始...';
+            
+            // 重置按钮状态
+            if (startGameBtn) startGameBtn.disabled = false;
+            if (nextPhaseBtn) nextPhaseBtn.disabled = true;
+            
+            // 重置流程指示器
+            updatePhaseIndicator('waiting');
+            
+            // 清空任务历史
+            if (missionHistoryList) {
+                missionHistoryList.innerHTML = '<div class="empty-state"><span class="empty-icon">📋</span><p>暂无任务记录</p></div>';
+            }
+            
+            // 移除5轮任务状态显示
+            const roundsContainer = document.getElementById('missionRounds');
+            if (roundsContainer) {
+                roundsContainer.remove();
+            }
+            
+            // 重置游戏状态
+            gameState = {
+                players: [],
+                currentPlayers: 0,
+                gamePhase: 'waiting',
+                currentRound: 0,
+                leader: null
+            };
+            
+            console.log('[主控端] UI已重置');
+        }
+        
+        // 获取阶段描述
+        function getPhaseDescription(phase) {
+            const descriptions = {
+                'waiting': '等待玩家加入',
+                'role-confirm': '等待玩家确认身份（主控可强制推进）',
+                'night': '特殊角色行动阶段',
+                'team-building': '队长组建队伍',
+                'voting': '全体玩家投票',
+                'mission': '队伍执行任务',
+                'assassination': '刺客选择刺杀目标',
+                'ended': '游戏结束'
+            };
+            return descriptions[phase] || '游戏进行中';
+        }
+        
+        // 加载上轮配置
+        function loadLastConfig() {
+            const lastCount = localStorage.getItem('lastPlayerCount');
+            if (lastCount) {
+                document.getElementById('playerCountSelect').value = lastCount;
+                updateConfigInfo();
+            }
+        }
+        
+        // 复制玩家链接 - 增强版，支持多种复制方式
+        async function copyPlayerUrl() {
+            const input = document.getElementById('playerUrlInput');
+            const url = input.value;
+            
+            // 检查是否有有效的链接
+            if (!url || url === '点击创建房间生成链接') {
+                alert('请先创建房间！');
+                return;
+            }
+            
+            let copied = false;
+            
+            // 方法1: 使用现代的 Clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                try {
+                    await navigator.clipboard.writeText(url);
+                    copied = true;
+                    showCopySuccess('链接已复制到剪贴板！');
+                } catch (err) {
+                    console.log('Clipboard API 失败:', err);
+                }
+            }
+            
+            // 方法2: 使用传统的 execCommand
+            if (!copied) {
+                try {
+                    input.select();
+                    input.setSelectionRange(0, 99999); // 移动端兼容
+                    
+                    if (document.execCommand('copy')) {
+                        copied = true;
+                        showCopySuccess('链接已复制到剪贴板！');
+                    }
+                } catch (err) {
+                    console.log('execCommand 复制失败:', err);
+                }
+            }
+            
+            // 方法3: 创建临时 textarea 元素复制
+            if (!copied) {
+                try {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = url;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    
+                    if (document.execCommand('copy')) {
+                        copied = true;
+                        showCopySuccess('链接已复制到剪贴板！');
+                    }
+                    
+                    document.body.removeChild(textarea);
+                } catch (err) {
+                    console.log('临时元素复制失败:', err);
+                }
+            }
+            
+            // 如果所有方法都失败，提供手动复制方案
+            if (!copied) {
+                // 自动选中输入框内容，方便用户手动复制
+                input.select();
+                input.setSelectionRange(0, 99999);
+                input.focus();
+                
+                // 显示更友好的提示
+                showCopyFallback('复制失败，请按 Ctrl+C (或长按) 手动复制');
+            }
+        }
+        
+        // 显示复制成功提示
+        function showCopySuccess(message) {
+            // 创建临时提示元素
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #27ae60;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                z-index: 10000;
+                animation: fadeInOut 2s ease;
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 2000);
+        }
+        
+        // 显示复制失败提示（提供手动复制方案）
+        function showCopyFallback(message) {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #f39c12;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                z-index: 10000;
+                animation: fadeInOut 3s ease;
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 3000);
+        }
+    </script>
+    <!-- 语音控制面板 -->
+    <script src="/js/modules/voice-controller.js"></script>
+</body>
+</html>

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>阿瓦隆・游戏大厅</title>
+    <link rel="stylesheet" href="/styles/controller-ux.css">
+    <style>
+        /* 大厅专用样式 */
+        .lobby-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+        }
+
+        /* 顶部导航 */
+        .lobby-header {
+            height: 64px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .lobby-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lobby-header .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .lobby-header .btn-icon {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .lobby-header .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 主内容区 */
+        .lobby-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* 统计信息 */
+        .stats-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 140px;
+        }
+
+        .stat-card .stat-icon {
+            font-size: 24px;
+        }
+
+        .stat-card .stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-card .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-card .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* 房间列表 */
+        .room-list-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .room-list-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .room-list-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-btn {
+            background: #f3f4f6;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #4b5563;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .refresh-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .refresh-btn.spinning {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 房间列表项 */
+        .room-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .room-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .room-item:hover {
+            background: #f9fafb;
+        }
+
+        .room-item:last-child {
+            border-bottom: none;
+        }
+
+        /* 房间号 */
+        .room-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+            min-width: 80px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        /* 房间信息 */
+        .room-info-section {
+            flex: 1;
+            margin-left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .room-info-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .info-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #4b5563;
+        }
+
+        .info-badge .icon {
+            font-size: 16px;
+        }
+
+        .player-count {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        /* 状态标签 */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-waiting {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-role-confirm {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .status-night {
+            background: #1e1b4b;
+            color: #c7d2fe;
+        }
+
+        .status-team-building {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .status-voting {
+            background: #fce7f3;
+            color: #db2777;
+        }
+
+        .status-mission {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        .status-assassination {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-ended {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        /* 进入按钮 */
+        .enter-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .enter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 空状态 */
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+            color: #9ca3af;
+        }
+
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            color: #4b5563;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* 创建房间按钮 */
+        .create-room-fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .create-room-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 24px rgba(102, 126, 234, 0.5);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .lobby-content {
+                padding: 12px;
+            }
+
+            .stats-bar {
+                gap: 8px;
+            }
+
+            .stat-card {
+                padding: 12px 16px;
+                min-width: 100px;
+            }
+
+            .stat-card .stat-value {
+                font-size: 20px;
+            }
+
+            .room-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .room-info-section {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .enter-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="lobby-container">
+        <!-- 顶部导航 -->
+        <header class="lobby-header">
+            <h1>🎮 阿瓦隆・游戏大厅</h1>
+            <div class="header-actions">
+                <a href="/player-modular.html" class="btn-icon" title="进入玩家页面">
+                    <span>👤</span> 玩家
+                </a>
+                <a href="/voice-panel-v2.html" class="btn-icon" title="进入语音面板">
+                    <span>🎮</span> 语音
+                </a>
+                <button class="btn-icon" onclick="deleteEmptyRooms()" title="删除无人房间">
+                    <span>🗑️</span> 清理
+                </button>
+                <button class="btn-icon" onclick="refreshRoomList()">
+                    <span>🔄</span> 刷新
+                </button>
+                <button class="btn-icon" onclick="showHelp()">
+                    <span>❓</span> 帮助
+                </button>
+            </div>
+        </header>
+
+        <!-- 主内容 -->
+        <main class="lobby-content">
+            <!-- 统计信息 -->
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <span class="stat-icon">🏠</span>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalRooms">0</span>
+                        <span class="stat-label">总房间数</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">👥</span>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalPlayers">0</span>
+                        <span class="stat-label">在线玩家</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">🎮</span>
+                    <div class="stat-info">
+                        <span class="stat-value" id="gamingRooms">0</span>
+                        <span class="stat-label">游戏中</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 房间列表 -->
+            <div class="room-list-container">
+                <div class="room-list-header">
+                    <h2>📋 房间列表</h2>
+                    <button class="refresh-btn" id="refreshBtn" onclick="refreshRoomList()">
+                        <span>🔄</span> 刷新列表
+                    </button>
+                </div>
+                <div class="room-list" id="roomList">
+                    <!-- 房间列表将在这里动态生成 -->
+                    <div class="empty-state">
+                        <div class="icon">🏠</div>
+                        <h3>暂无房间</h3>
+                        <p>点击右下角按钮创建新房间</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 创建房间按钮 -->
+        <button class="create-room-fab" onclick="createNewRoom()" title="创建新房间">
+            <span>+</span>
+        </button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // 连接到服务器
+        const socket = io();
+        
+        // 存储房间数据
+        let roomsData = [];
+        
+        // 状态映射
+        const phaseNames = {
+            'waiting': '等待玩家',
+            'role-confirm': '身份确认',
+            'night': '夜间阶段',
+            'team-building': '等待组队',
+            'voting': '投票阶段',
+            'mission': '任务阶段',
+            'assassination': '刺杀阶段',
+            'ended': '游戏结束'
+        };
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[大厅] 页面加载完成');
+            refreshRoomList();
+            
+            // 每5秒自动刷新
+            setInterval(refreshRoomList, 5000);
+        });
+        
+        // 刷新房间列表
+        function refreshRoomList() {
+            console.log('[大厅] 刷新房间列表');
+            
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.classList.add('spinning');
+            
+            // 请求房间列表
+            socket.emit('get-rooms-list');
+            
+            setTimeout(() => {
+                refreshBtn.classList.remove('spinning');
+            }, 1000);
+        }
+        
+        // 监听房间列表更新
+        socket.on('rooms-list', (data) => {
+            console.log('[大厅] 收到房间列表:', data);
+            roomsData = data.rooms || [];
+            renderRoomList();
+            updateStats();
+        });
+        
+        // 渲染房间列表
+        function renderRoomList() {
+            const roomListEl = document.getElementById('roomList');
+            
+            if (roomsData.length === 0) {
+                roomListEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🏠</div>
+                        <h3>暂无房间</h3>
+                        <p>点击右下角按钮创建新房间</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            roomListEl.innerHTML = roomsData.map(room => {
+                const phaseName = phaseNames[room.gamePhase] || '未知状态';
+                const statusClass = `status-${room.gamePhase}`;
+                const playerCount = room.playerCount || 0;
+                const configuredCount = room.configuredPlayerCount || 5;
+                
+                return `
+                    <a href="/voice-panel-v2.html?roomId=${room.roomId}" class="room-item">
+                        <div class="room-number">${room.roomId}</div>
+                        <div class="room-info-section">
+                            <div class="room-info-row">
+                                <span class="info-badge">
+                                    <span class="icon">👥</span>
+                                    <span>人数: <span class="player-count">${playerCount}</span> / ${configuredCount}</span>
+                                </span>
+                                <span class="status-badge ${statusClass}">${phaseName}</span>
+                            </div>
+                            <div class="room-info-row">
+                                <span class="info-badge">
+                                    <span class="icon">🎯</span>
+                                    <span>轮次: ${room.currentRound || 0} / 5</span>
+                                </span>
+                                ${room.leader ? `
+                                <span class="info-badge">
+                                    <span class="icon">👑</span>
+                                    <span>队长: ${room.leader}</span>
+                                </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <button class="enter-btn">
+                            <span>▶</span> 进入房间
+                        </button>
+                    </a>
+                `;
+            }).join('');
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            const totalRooms = roomsData.length;
+            const totalPlayers = roomsData.reduce((sum, room) => sum + (room.playerCount || 0), 0);
+            const gamingRooms = roomsData.filter(room => room.gamePhase !== 'waiting').length;
+            
+            document.getElementById('totalRooms').textContent = totalRooms;
+            document.getElementById('totalPlayers').textContent = totalPlayers;
+            document.getElementById('gamingRooms').textContent = gamingRooms;
+        }
+        
+        // 创建新房间
+        function createNewRoom() {
+            console.log('[大厅] 创建新房间');
+            // 跳转到主控页面，不带房间号参数，让主控页面自动生成
+            window.location.href = '/?type=controller';
+        }
+        
+        // 删除无人房间
+        function deleteEmptyRooms() {
+            console.log('[大厅] 删除无人房间');
+            
+            const emptyRooms = roomsData.filter(room => room.playerCount === 0);
+            
+            if (emptyRooms.length === 0) {
+                showToast('没有无人房间需要清理', 'info');
+                return;
+            }
+            
+            if (confirm(`确定要删除 ${emptyRooms.length} 个无人房间吗？`)) {
+                emptyRooms.forEach(room => {
+                    socket.emit('delete-room', { roomId: room.roomId });
+                    console.log(`[大厅] 删除房间: ${room.roomId}`);
+                });
+                
+                setTimeout(() => {
+                    refreshRoomList();
+                    showToast(`已删除 ${emptyRooms.length} 个无人房间`, 'success');
+                }, 500);
+            }
+        }
+        
+        // 显示帮助
+        function showHelp() {
+            alert('阿瓦隆游戏大厅使用说明：\n\n1. 查看所有正在进行的房间\n2. 点击房间进入主控页面\n3. 点击右下角 + 按钮创建新房间\n4. 列表每5秒自动刷新');
+        }
+        
+        // 监听房间更新
+        socket.on('room-updated', () => {
+            console.log('[大厅] 房间状态更新');
+            refreshRoomList();
+        });
+        
+        // 监听房间列表更新（删除房间后）
+        socket.on('rooms-list-updated', () => {
+            console.log('[大厅] 房间列表已更新');
+            refreshRoomList();
+        });
+        
+        // 显示提示信息
+        function showToast(message, type = 'info') {
+            // 创建toast元素
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <span class="toast-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+                <span class="toast-message">${message}</span>
+            `;
+            
+            // 添加样式
+            toast.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // 3秒后移除
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+    <style>
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
+</body>
+</html>

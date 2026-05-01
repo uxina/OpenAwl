@@ -1,0 +1,474 @@
+<!-- public/player-modular.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阿瓦隆游戏 - 玩家端</title>
+    <link rel="stylesheet" href="/styles/player.css">
+    
+    <!-- Toast提示样式 -->
+    <style>
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 10000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            border-left: 4px solid #3498db;
+        }
+        
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-success {
+            border-left-color: #27ae60;
+            background: #d5f4e6;
+        }
+        
+        .toast-error {
+            border-left-color: #e74c3c;
+            background: #fadbd8;
+        }
+        
+        .toast-warning {
+            border-left-color: #f39c12;
+            background: #fdebd0;
+        }
+        
+        .toast-icon {
+            font-size: 20px;
+        }
+        
+        .toast-message {
+            font-size: 14px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 玩家信息栏（始终显示） -->
+        <div id="playerInfoBar" class="player-info-bar hidden">
+            <div class="player-info-content">
+                <span class="player-name-display">👤 <strong id="currentPlayerName">-</strong></span>
+                <span class="player-role-display hidden" id="currentPlayerRole">🎭 <strong>-</strong></span>
+                <span class="player-side-display hidden" id="currentPlayerSide">⚔️ <strong>-</strong></span>
+            </div>
+        </div>
+
+        <!-- 加载屏幕 -->
+        <div id="loading" class="screen hidden">连接中...</div>
+
+        <!-- 房间加入屏幕 -->
+        <div id="joinScreen" class="screen active">
+            <h2>加入阿瓦隆游戏</h2>
+            <div class="join-form">
+                <div class="form-group">
+                    <label for="roomIdInput">房间号:</label>
+                    <input type="text" id="roomIdInput" placeholder="请输入4位房间号（如：5258）">
+                    <small class="form-text">请从主持人处获取正确的4位房间号</small>
+                </div>
+                <div class="form-group">
+                    <label>选择你的玩家编号:</label>
+                    <div id="playerIdSelector" class="player-id-selector">
+                        <!-- 动态生成1-10号按钮 -->
+                    </div>
+                    <small class="form-text" id="playerIdHint">请选择1-10之间的编号，灰色表示已被选择</small>
+                </div>
+                <input type="hidden" id="selectedPlayerId" value="">
+                <button id="joinRoomBtn" class="btn btn-primary" disabled>加入房间</button>
+            </div>
+        </div>
+
+        <!-- 规则说明屏幕 -->
+        <div id="rulesScreen" class="screen hidden">
+            <h2>🎮 阿瓦隆游戏规则</h2>
+            <div class="rules-content">
+                <div class="rule-section">
+                    <h3>📋 游戏目标</h3>
+                    <ul>
+                        <li><strong>正义方（好人）</strong>：完成3次任务成功，或保护梅林不被刺杀</li>
+                        <li><strong>邪恶方（坏人）</strong>：让3次任务失败，或刺杀梅林</li>
+                    </ul>
+                </div>
+
+                <div class="rule-section">
+                    <h3>🎭 角色介绍</h3>
+                    <div class="role-grid">
+                        <div class="role-card good">
+                            <strong>梅林</strong> - 知道所有坏人身份，但不能暴露自己
+                        </div>
+                        <div class="role-card good">
+                            <strong>忠臣</strong> - 正义的骑士，帮助完成任务
+                        </div>
+                        <div class="role-card evil">
+                            <strong>刺客</strong> - 任务失败后刺杀梅林
+                        </div>
+                        <div class="role-card evil">
+                            <strong>莫甘娜</strong> - 伪装成梅林迷惑好人
+                        </div>
+                        <div class="role-card evil">
+                            <strong>莫德雷德</strong> - 梅林看不到他
+                        </div>
+                        <div class="role-card evil">
+                            <strong>奥伯伦</strong> - 看不到其他坏人
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rule-section">
+                    <h3>🎯 游戏流程</h3>
+                    <ol>
+                        <li><strong>组队阶段</strong>：队长选择队员组成车队</li>
+                        <li><strong>投票阶段</strong>：所有玩家投票决定是否同意车队</li>
+                        <li><strong>任务阶段</strong>：车队成员投票决定任务成败</li>
+                        <li><strong>刺杀阶段</strong>：3次成功后刺客尝试刺杀梅林</li>
+                    </ol>
+                </div>
+
+                <div class="rule-section">
+                    <h3>⚠️ 重要规则</h3>
+                    <ul>
+                        <li>投票需要<strong>超过半数</strong>赞成才能发车</li>
+                        <li>连续4次组队失败后，<strong>第5任队长强制发车</strong></li>
+                        <li>好人只能投<strong>成功</strong>，坏人可以投成功或失败</li>
+                        <li>7人以上第4轮需要<strong>2张失败票</strong>才失败</li>
+                    </ul>
+                </div>
+
+                <div class="rule-section">
+                    <h3>👥 人数配置</h3>
+                    <table class="config-table">
+                        <tr>
+                            <th>人数</th>
+                            <th>好人</th>
+                            <th>坏人</th>
+                            <th>任务人数</th>
+                        </tr>
+                        <tr><td>5人</td><td>3</td><td>2</td><td>2-3-2-3-3</td></tr>
+                        <tr><td>6人</td><td>4</td><td>2</td><td>2-3-4-3-4</td></tr>
+                        <tr><td>7人</td><td>4</td><td>3</td><td>2-3-3-4-4</td></tr>
+                        <tr><td>8人</td><td>5</td><td>3</td><td>3-4-4-5-5</td></tr>
+                        <tr><td>9人</td><td>6</td><td>3</td><td>3-4-4-5-5</td></tr>
+                        <tr><td>10人</td><td>6</td><td>4</td><td>3-4-4-5-5</td></tr>
+                    </table>
+                </div>
+            </div>
+            <button id="understoodBtn" class="btn btn-primary">👍 我明白了，开始游戏</button>
+        </div>
+
+        <!-- 等待开始屏幕 -->
+        <div id="waitingScreen" class="screen hidden">
+            <h2>等待游戏开始</h2>
+            <div>房间号: <strong id="currentRoomId">-</strong></div>
+            <div>玩家数: <strong id="currentPlayerCount">0</strong>/10</div>
+            <div id="playerList" class="player-list"></div>
+            <button id="showRulesBtn" class="btn btn-secondary">📖 查看规则</button>
+        </div>
+
+        <!-- 身份确认屏幕 -->
+        <div id="roleAssignmentScreen" class="screen hidden">
+            <h2>🎭 身份确认</h2>
+            <div class="role-confirm-container">
+                <div id="roleInfo" class="role-info-card">
+                    <div class="role-icon" id="roleIcon">🎭</div>
+                    <div class="role-name">你的角色: <strong id="myRole">-</strong></div>
+                    <div class="role-side">所属阵营: <strong id="mySide">-</strong></div>
+                    <div class="role-description" id="roleDescription">-</div>
+                    <div class="role-ability" id="roleAbility">-</div>
+                </div>
+                
+                <div class="role-hint" id="roleHint">
+                    <h4>💡 角色提示</h4>
+                    <p id="roleHintText">-</p>
+                </div>
+                
+                <div class="confirm-notice">
+                    <p>请确认你的身份，准备好后点击按钮进入夜间阶段</p>
+                </div>
+            </div>
+            <button id="readyBtn" class="btn btn-primary btn-large">👍 确认身份，准备开始</button>
+        </div>
+
+        <!-- 夜间屏幕 -->
+        <div id="nightScreen" class="screen hidden">
+            <h2>🌙 夜间阶段</h2>
+            
+            <!-- 当前身份显示 -->
+            <div id="nightRoleInfo" class="night-role-info">
+                <div class="night-identity-header">
+                    <span class="night-role-icon" id="nightRoleIcon">🎭</span>
+                    <div class="night-identity-details">
+                        <div class="night-identity-item">
+                            <span class="label">你的名字:</span>
+                            <strong id="nightMyName">-</strong>
+                        </div>
+                        <div class="night-identity-item">
+                            <span class="label">你的身份:</span>
+                            <strong id="nightMyRole">-</strong>
+                        </div>
+                        <div class="night-identity-item">
+                            <span class="label">你的阵营:</span>
+                            <strong id="nightMySide">-</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 技能信息 -->
+            <div id="nightAbilityInfo" class="night-ability-info">
+                <h3>✨ 你的技能</h3>
+                <div id="nightAbilityText" class="ability-text">-</div>
+            </div>
+            
+            <!-- 特殊信息（梅林看到坏人等） -->
+            <div id="specialInfo" class="special-info">
+                <h3>👁️ 你看到的玩家</h3>
+                <div id="specialInfoContent" class="special-info-content">-</div>
+            </div>
+            
+            <!-- 阵营信息 -->
+            <div id="nightFactionInfo" class="night-faction-info">
+                <h3>👥 你的阵营</h3>
+                <div id="factionMembers" class="faction-members">-</div>
+            </div>
+            
+            <button id="nextPhaseBtn" class="btn btn-primary btn-large">进入下一阶段</button>
+        </div>
+
+        <!-- 白天/讨论屏幕 -->
+        <div id="dayScreen" class="screen hidden">
+            <div class="day-header">
+                <h2>☀️ 天亮了</h2>
+                <div class="round-info">第 <span id="dayRound">1</span> 轮讨论</div>
+            </div>
+            <div class="day-message">
+                <p id="dayMessage">天亮了，大家请开始讨论</p>
+            </div>
+            <div class="discussion-timer">
+                <div class="timer-display">讨论时间</div>
+                <div class="timer-hint">请讨论本轮的任务队伍配置</div>
+            </div>
+            <div id="autoAdvanceMessage" class="auto-advance-message hidden"></div>
+        </div>
+
+        <!-- 组队屏幕 -->
+        <div id="teamBuildingScreen" class="screen hidden">
+            <div class="round-indicator">
+                <span class="round-number">第 <span id="currentRoundDisplay">1</span> 轮任务</span>
+                <span class="leader-indicator">👑 当前队长: <strong id="currentLeader">-</strong></span>
+            </div>
+            <div class="team-size-indicator">
+                需要选择: <strong id="requiredTeamSize">2</strong> 名队员
+            </div>
+            
+            <!-- 任务历史信息条 -->
+            <div id="missionHistory" class="mission-history">
+                <h3>📊 任务历史</h3>
+                <div id="missionHistoryList" class="mission-history-list">
+                    <!-- 动态生成任务历史 -->
+                </div>
+            </div>
+            
+            <div id="isLeaderInfo" class="leader-panel hidden">
+                <h3>🚩 你是队长！请选择队员组建队伍</h3>
+                <div>已选择: <strong id="selectedCount">0</strong>/<span id="requiredSizeDisplay">2</span></div>
+                <div>已选队员: <span id="selectedNames">暂无选择</span></div>
+                <button id="clearSelectionBtn" class="btn btn-secondary">清空选择</button>
+                <button id="submitTeamBtn" class="btn btn-primary" disabled>提交队伍</button>
+            </div>
+            
+            <div id="notLeaderInfo">
+                <p>等待队长 <strong id="waitingLeader">-</strong> 组建队伍...</p>
+            </div>
+            
+            <div id="teamBuildingPlayerList" class="player-list"></div>
+        </div>
+
+        <!-- 投票屏幕 -->
+        <div id="votingScreen" class="screen hidden">
+            <h2>投票阶段</h2>
+            <div>队长: <strong id="votingLeader">-</strong></div>
+            <div>队伍成员: <strong id="votingTeamMembers">-</strong></div>
+            <div>投票进度: <strong id="votedCount">0</strong>/<strong id="totalVoters">0</strong></div>
+            
+            <div id="voteButtons">
+                <button id="approveBtn" class="btn btn-success">赞成</button>
+                <button id="rejectBtn" class="btn btn-danger">反对</button>
+            </div>
+            
+            <div id="voteResult" class="vote-result hidden"></div>
+        </div>
+
+        <!-- 任务屏幕 -->
+        <div id="missionScreen" class="screen hidden">
+            <h2>任务阶段 - 第<span id="missionRound">1</span>轮</h2>
+            <div>任务成员: <strong id="missionTeamMembers">-</strong></div>
+            
+            <div id="missionButtons">
+                <button id="successBtn" class="btn btn-success">任务成功</button>
+                <button id="failBtn" class="btn btn-danger">任务失败</button>
+            </div>
+            
+            <div id="missionResult" class="mission-result hidden"></div>
+        </div>
+
+        <!-- 刺杀阶段屏幕 -->
+        <div id="assassinationScreen" class="screen hidden">
+            <h2>刺杀阶段</h2>
+            <div class="assassination-info">
+                <p>好人即将获得胜利！</p>
+                <p>刺客，请选择你要刺杀的目标...</p>
+            </div>
+            <div id="assassinationPlayerList" class="player-list"></div>
+            <div id="assassinationResult" class="assassination-result hidden"></div>
+        </div>
+
+        <!-- 游戏结束屏幕 -->
+        <div id="gameOverScreen" class="screen hidden">
+            <h2>游戏结束</h2>
+            <div class="winner-info">获胜方: <strong id="gameWinner">-</strong></div>
+            <div id="gameResult" class="game-result-text"></div>
+            
+            <!-- 身份揭晓 -->
+            <div class="game-over-section">
+                <h3>🎭 身份揭晓</h3>
+                <div id="roleList" class="role-list"></div>
+            </div>
+            
+            <!-- 任务历史 -->
+            <div class="game-over-section">
+                <h3>📋 任务历史</h3>
+                <div id="finalMissionHistory" class="final-mission-history"></div>
+            </div>
+            
+            <!-- 投票历史 -->
+            <div class="game-over-section">
+                <h3>🗳️ 投票历史</h3>
+                <div id="finalVoteHistory" class="final-vote-history"></div>
+            </div>
+            
+            <button id="restartBtn" class="btn btn-primary">返回加入房间页面</button>
+        </div>
+
+        <!-- 错误信息 -->
+        <div id="errorMessage" class="error-message hidden"></div>
+    </div>
+
+    <!-- 引入Socket.io -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Socket 事件常量配置 -->
+    <script src="js/config/socket-events.js"></script>
+
+    <!-- Toast提示函数 -->
+    <script>
+        // 通用Toast提示
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️',
+                warning: '⚠️'
+            };
+            
+            toast.innerHTML = `
+                <span class="toast-icon">${icons[type] || 'ℹ️'}</span>
+                <span class="toast-message">${message}</span>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // 触发动画
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // 自动移除
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // 显示成功提示
+        function showSuccessToast(message) {
+            showToast(message, 'success');
+        }
+        
+        // 显示错误提示
+        function showErrorToast(message) {
+            showToast(message, 'error');
+        }
+        
+        // 显示信息提示
+        function showInfoToast(message) {
+            showToast(message, 'info');
+        }
+        
+        // 显示警告提示
+        function showWarningToast(message) {
+            showToast(message, 'warning');
+        }
+    </script>
+    
+    <!-- 引入模块化文件 -->
+    <script src="js/modules/game-core.js"></script>
+    <script src="js/modules/ui-manager.js"></script>
+    <script src="js/modules/team-builder.js"></script>
+    <script src="js/modules/socket-handlers.js"></script>
+    
+    <!-- URL参数解析和自动填充 -->
+    <script>
+        // 从URL参数获取房间号
+        function getRoomIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('roomId');
+        }
+        
+        // 页面加载时自动填充房间号
+        document.addEventListener('DOMContentLoaded', function() {
+            const roomId = getRoomIdFromUrl();
+            const roomIdInput = document.getElementById('roomIdInput');
+            
+            if (roomId && roomIdInput) {
+                roomIdInput.value = roomId;
+                console.log('已从URL自动填充房间号:', roomId);
+                
+                // 显示提示
+                const formText = document.querySelector('.form-text');
+                if (formText) {
+                    formText.innerHTML = '<span style="color: #27ae60;">✓ 已自动填充房间号，请确认后输入名字加入</span>';
+                }
+                
+                // 自动聚焦到名字输入框
+                const playerNameInput = document.getElementById('playerNameInput');
+                if (playerNameInput) {
+                    setTimeout(() => playerNameInput.focus(), 100);
+                }
+            }
+        });
+    </script>
+    
+    <!-- 主程序 -->
+    <script src="js/main.js"></script>
+</body>
+</html>

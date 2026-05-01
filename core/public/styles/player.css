@@ -1,0 +1,1363 @@
+/* 玩家页面样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 玩家信息栏（始终显示） */
+.player-info-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 20px;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.player-info-bar.hidden {
+    display: none;
+}
+
+.player-info-content {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.player-name-display,
+.player-role-display,
+.player-side-display {
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.player-role-display.good {
+    color: #d4edda;
+}
+
+.player-role-display.evil {
+    color: #f8d7da;
+}
+
+.player-side-display.good {
+    color: #d4edda;
+}
+
+.player-side-display.evil {
+    color: #f8d7da;
+}
+
+/* 为固定信息栏调整屏幕内容 */
+.screen {
+    padding-top: 60px;
+}
+
+/* 队长相关样式 */
+.leader-badge {
+    background: #e74c3c;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.8em;
+    margin-left: 5px;
+    font-weight: bold;
+}
+
+.leader-highlight {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+/* 玩家阵营颜色区分 */
+.player-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    margin: 5px 0;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border-left: 4px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.player-item.good-player {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-left-color: #28a745;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+.player-item.evil-player {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    border-left-color: #dc3545;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+.side-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 0.75em;
+    font-weight: bold;
+    margin-right: 10px;
+    color: white;
+}
+
+.side-badge.good {
+    background: #28a745;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.side-badge.evil {
+    background: #dc3545;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+/* 轮次和队长标识 */
+.round-indicator {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.round-number {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.leader-indicator {
+    font-size: 1.2em;
+    background: rgba(255,255,255,0.2);
+    padding: 5px 15px;
+    border-radius: 20px;
+}
+
+.team-size-indicator {
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border-radius: 0 8px 8px 0;
+    font-size: 1.1em;
+}
+
+/* 组队成功/失败标识 */
+.team-result-success {
+    background: #d4edda;
+    border: 2px solid #28a745;
+    color: #155724;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.team-result-fail {
+    background: #f8d7da;
+    border: 2px solid #dc3545;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+/* 队长轮换提示 */
+.leader-change-notice {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    color: #856404;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    text-align: center;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* 角色揭晓样式 */
+.role-reveal-item {
+    padding: 10px 15px;
+    margin: 8px 0;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+.role-reveal-item.good {
+    background: #d4edda;
+    border-left: 4px solid #28a745;
+    color: #155724;
+}
+
+.role-reveal-item.evil {
+    background: #f8d7da;
+    border-left: 4px solid #dc3545;
+    color: #721c24;
+}
+
+/* 游戏结束屏幕样式 */
+#gameResult {
+    white-space: pre-line;
+    line-height: 1.6;
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 1.1em;
+}
+
+#roleList h3 {
+    color: #2c3e50;
+    margin: 20px 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.leader-panel {
+    background: #d4edda;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+/* 规则说明屏幕样式 */
+#rulesScreen {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.rules-content {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.rule-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.rule-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.rule-section h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rule-section ul,
+.rule-section ol {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.rule-section li {
+    margin: 8px 0;
+    line-height: 1.6;
+    color: #495057;
+}
+
+.role-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.role-card {
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+
+.role-card.good {
+    background: #d4edda;
+    border-left: 4px solid #28a745;
+}
+
+.role-card.evil {
+    background: #f8d7da;
+    border-left: 4px solid #dc3545;
+}
+
+.config-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+.config-table th,
+.config-table td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+}
+
+.config-table th {
+    background: #e9ecef;
+    font-weight: 600;
+    color: #495057;
+}
+
+.config-table tr:nth-child(even) {
+    background: #f8f9fa;
+}
+
+/* 身份确认屏幕样式 */
+.role-confirm-container {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 25px;
+    margin: 20px 0;
+}
+
+.role-info-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.role-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+}
+
+.role-name {
+    font-size: 1.3em;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.role-side {
+    font-size: 1.1em;
+    margin-bottom: 15px;
+    padding: 8px 15px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.role-side.good {
+    background: #d4edda;
+    color: #155724;
+}
+
+.role-side.evil {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.role-description {
+    font-size: 1em;
+    color: #495057;
+    margin: 15px 0;
+    padding: 10px;
+    background: #e9ecef;
+    border-radius: 8px;
+}
+
+.role-ability {
+    font-size: 0.95em;
+    color: #6c757d;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+.role-hint {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 15px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.role-hint h4 {
+    color: #856404;
+    margin-bottom: 8px;
+}
+
+.role-hint p {
+    color: #856404;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.confirm-notice {
+    background: #d1ecf1;
+    border: 1px solid #17a2b8;
+    color: #0c5460;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.btn-large {
+    padding: 15px 40px;
+    font-size: 1.2em;
+}
+
+/* 夜间屏幕样式 */
+.night-role-info {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    border-left: 5px solid #dee2e6;
+}
+
+.night-role-info.good {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-left-color: #28a745;
+}
+
+.night-role-info.evil {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    border-left-color: #dc3545;
+}
+
+.night-identity-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.night-role-icon {
+    font-size: 4em;
+    flex-shrink: 0;
+}
+
+.night-identity-details {
+    flex: 1;
+}
+
+.night-identity-item {
+    margin: 8px 0;
+    font-size: 1.1em;
+}
+
+.night-identity-item .label {
+    color: #6c757d;
+    margin-right: 8px;
+}
+
+.night-ability-info {
+    background: #e7f3ff;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin: 15px 0;
+    border-left: 4px solid #2196f3;
+}
+
+.night-ability-info h3 {
+    color: #1976d2;
+    margin-bottom: 10px;
+}
+
+.ability-text {
+    color: #424242;
+    line-height: 1.6;
+    font-size: 1.05em;
+}
+
+.special-info {
+    background: #fff3e0;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin: 15px 0;
+    border-left: 4px solid #ff9800;
+}
+
+.special-info h3 {
+    color: #e65100;
+    margin-bottom: 10px;
+}
+
+.special-info-content {
+    color: #424242;
+}
+
+.night-faction-info {
+    background: #f3e5f5;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin: 15px 0;
+    border-left: 4px solid #9c27b0;
+}
+
+.night-faction-info h3 {
+    color: #7b1fa2;
+    margin-bottom: 10px;
+}
+
+.faction-section {
+    margin: 10px 0;
+}
+
+.faction-section h4 {
+    color: #6c757d;
+    margin-bottom: 8px;
+    font-size: 1em;
+}
+
+.faction-player {
+    padding: 8px 12px;
+    margin: 5px 0;
+    border-radius: 6px;
+    background: #e9ecef;
+}
+
+.faction-player.evil {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.faction-members {
+    color: #424242;
+}
+
+#understoodBtn {
+    margin-top: 20px;
+    padding: 12px 30px;
+    font-size: 1.1em;
+}
+
+#showRulesBtn {
+    margin-top: 15px;
+    background: #6c757d;
+}
+
+.leader-instruction h3 {
+    color: #155724;
+    margin-bottom: 8px;
+}
+
+.leader-instruction p {
+    color: #0f5132;
+    margin: 0;
+}
+
+.member-panel {
+    background: #d1ecf1;
+    border: 2px solid #17a2b8;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f5f5f5;
+    padding: 20px;
+}
+
+#app {
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    min-height: 400px;
+}
+
+h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+h3 {
+    color: #34495e;
+    margin-bottom: 15px;
+}
+
+/* 屏幕切换 */
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* 表单样式 */
+input[type="text"],
+input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* 按钮样式 */
+.btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn:hover {
+    background-color: #2980b9;
+}
+
+.btn:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background-color: #3498db;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
+.btn-success {
+    background-color: #27ae60;
+}
+
+.btn-success:hover {
+    background-color: #229954;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 角色卡片样式 */
+.role-card {
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.role-card.side-good {
+    background-color: #e8f8f5;
+    border: 2px solid #27ae60;
+}
+
+.role-card.side-evil {
+    background-color: #fdedec;
+    border: 2px solid #e74c3c;
+}
+
+.role-name {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.role-side {
+    font-size: 18px;
+}
+
+/* 角色信息样式 */
+.role-info {
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    border: 2px solid;
+}
+
+.role-info div {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+.role-info strong {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* 特殊信息样式 */
+.special-info {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.special-info-item {
+    margin: 10px 0;
+    padding: 10px;
+    background: white;
+    border-radius: 5px;
+    border-left: 4px solid #3498db;
+}
+
+.special-info-item h4 {
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+/* 玩家列表样式 */
+.player-list {
+    margin: 20px 0;
+}
+
+.player-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    margin: 8px 0;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.player-item:hover {
+    border-color: #3498db;
+}
+
+.player-item.in-team {
+    background: #e8f8f5;
+    border-color: #27ae60;
+}
+
+.player-item.is-leader {
+    background: #fff3cd;
+    border-color: #ffc107;
+}
+
+.player-select {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #3498db;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.player-select.selected {
+    background: #27ae60;
+}
+
+/* 投票按钮样式 */
+.vote-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.vote-buttons .btn {
+    flex: 1;
+}
+
+.btn-approve {
+    background-color: #27ae60;
+}
+
+.btn-approve:hover {
+    background-color: #229954;
+}
+
+.btn-reject {
+    background-color: #e74c3c;
+}
+
+.btn-reject:hover {
+    background-color: #c0392b;
+}
+
+/* 任务按钮样式 */
+.mission-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.mission-buttons .btn {
+    flex: 1;
+}
+
+.btn-success {
+    background-color: #27ae60;
+}
+
+.btn-success:hover {
+    background-color: #229954;
+}
+
+.btn-fail {
+    background-color: #e74c3c;
+}
+
+.btn-fail:hover {
+    background-color: #c0392b;
+}
+
+/* 结果显示样式 */
+.vote-result,
+.mission-result {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* 错误消息样式 */
+.error-message {
+    color: #e74c3c;
+    background: #fdedec;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+/* 成功消息样式 */
+.success-message {
+    color: #27ae60;
+    background: #e8f8f5;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+/* 加载样式 */
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #7f8c8d;
+}
+
+/* 游戏结束样式 */
+.game-over {
+    text-align: center;
+    padding: 30px;
+}
+
+.game-over h2 {
+    font-size: 32px;
+    margin-bottom: 20px;
+}
+
+.game-over.good-wins {
+    color: #27ae60;
+}
+
+.game-over.evil-wins {
+    color: #e74c3c;
+}
+
+/* 投票和任务按钮 - 左右布局 */
+.action-buttons,
+.voting-buttons,
+.mission-buttons {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    gap: 20px !important;
+    margin-top: 20px !important;
+}
+
+.action-buttons button,
+.voting-buttons button,
+.mission-buttons button {
+    width: calc(50% - 10px) !important;
+    flex: 0 0 calc(50% - 10px) !important;
+    min-height: 50px !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    #app {
+        padding: 15px;
+    }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.screen.active {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* 通知样式 */
+.notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 30px;
+    background: #e74c3c;
+    color: white;
+    border-radius: 5px;
+    text-align: center;
+    z-index: 100;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.waiting-message {
+    text-align: center;
+    color: #7f8c8d;
+    padding: 10px;
+}
+
+.info-message {
+    text-align: center;
+    color: #7f8c8d;
+    padding: 10px;
+}
+
+/* 房间加入表单样式 */
+.join-form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-text {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+/* 任务历史信息条样式 */
+.mission-history {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.mission-history h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 18px;
+    text-align: center;
+}
+
+.mission-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mission-item {
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 4px solid;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.mission-item.mission-success {
+    border-left-color: #27ae60;
+    background: #e8f8f5;
+}
+
+.mission-item.mission-fail {
+    border-left-color: #e74c3c;
+    background: #fdedec;
+}
+
+.mission-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.mission-round {
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.mission-status {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.mission-item.mission-success .mission-status {
+    color: #27ae60;
+}
+
+.mission-item.mission-fail .mission-status {
+    color: #e74c3c;
+}
+
+.mission-team {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.mission-vote {
+    font-size: 13px;
+    color: #777;
+    font-style: italic;
+}
+
+.vote-details {
+    font-size: 12px;
+    margin-top: 5px;
+    line-height: 1.5;
+}
+
+.vote-details br {
+    margin-bottom: 3px;
+}
+
+.mission-vote-info {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.no-mission {
+    text-align: center;
+    color: #7f8c8d;
+    padding: 20px;
+    font-style: italic;
+}
+
+/* 游戏结束页面样式 */
+#gameOverScreen {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+#gameOverScreen h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.winner-info {
+    text-align: center;
+    font-size: 1.3em;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.game-result-text {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    white-space: pre-line;
+    line-height: 1.6;
+}
+
+.game-over-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.game-over-section h3 {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+    color: #495057;
+}
+
+/* 最终任务历史样式 */
+.final-mission-history {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.final-mission-item {
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 4px solid;
+}
+
+.final-mission-item.success {
+    background: #d4edda;
+    border-left-color: #28a745;
+}
+
+.final-mission-item.fail {
+    background: #f8d7da;
+    border-left-color: #dc3545;
+}
+
+.final-mission-item .mission-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.final-mission-item .mission-team {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.final-mission-item .vote-type {
+    font-size: 0.85em;
+    color: #888;
+}
+
+/* 最终投票历史样式 */
+.final-vote-history {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.final-vote-item {
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 4px solid;
+}
+
+.final-vote-item.passed {
+    background: #d4edda;
+    border-left-color: #28a745;
+}
+
+.final-vote-item.rejected {
+    background: #f8d7da;
+    border-left-color: #dc3545;
+}
+
+.final-vote-item .vote-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.final-vote-item .vote-team {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.final-vote-item .vote-approve {
+    color: #28a745;
+    font-size: 0.9em;
+    margin: 3px 0;
+}
+
+.final-vote-item .vote-reject {
+    color: #dc3545;
+    font-size: 0.9em;
+    margin: 3px 0;
+}
+
+.empty-history {
+    text-align: center;
+    color: #999;
+    padding: 20px;
+    font-style: italic;
+}
+
+/* 角色揭晓样式 */
+.role-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.role-reveal-item {
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.role-reveal-item.good {
+    background: #d4edda;
+    color: #155724;
+}
+
+.role-reveal-item.evil {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* 玩家ID选择器样式 */
+.player-id-selector {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin: 15px 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.player-id-btn {
+    padding: 15px 10px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: white;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.player-id-btn:hover:not(:disabled) {
+    border-color: #667eea;
+    background: #f0f4ff;
+    transform: translateY(-2px);
+}
+
+.player-id-btn.selected {
+    border-color: #28a745;
+    background: #d4edda;
+    color: #155724;
+}
+
+.player-id-btn:disabled {
+    background: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+    border-color: #dee2e6;
+}
+
+.player-id-btn.taken {
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+    cursor: not-allowed;
+    position: relative;
+}
+
+.player-id-btn.taken::after {
+    content: '✗';
+    position: absolute;
+    top: 2px;
+    right: 5px;
+    font-size: 0.7em;
+    color: #dc3545;
+}

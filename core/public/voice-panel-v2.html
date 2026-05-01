@@ -1,0 +1,2832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎭 阿瓦隆语音主控面板 V2</title>
+    <style>
+        /* ===== CSS变量系统 ===== */
+        :root {
+            --primary-500: #667eea;
+            --primary-600: #5a67d8;
+            --success: #00d4aa;
+            --success-light: rgba(0, 212, 170, 0.15);
+            --warning: #f39c12;
+            --warning-light: rgba(243, 156, 18, 0.15);
+            --danger: #e74c3c;
+            --danger-light: rgba(231, 76, 60, 0.15);
+            --info: #3498db;
+            --bg-dark: #1a1a2e;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --text-muted: rgba(255, 255, 255, 0.4);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --transition-normal: 300ms;
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 20px;
+            --space-6: 24px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #16213e 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            padding: var(--space-4);
+            line-height: 1.6;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .main-panel {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+            padding: var(--space-4) var(--space-5);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 { font-size: 22px; font-weight: 700; margin-bottom: var(--space-1); }
+        .header-left .subtitle { font-size: 13px; opacity: 0.8; }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .player-count-display {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            background: rgba(0, 0, 0, 0.2);
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .player-count-display .count {
+            font-size: 18px;
+            font-weight: 700;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .btn-count {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-count:hover { background: rgba(255, 255, 255, 0.25); transform: scale(1.1); }
+
+        .btn-create-room {
+            padding: 0 var(--space-4);
+            border: none;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, #00d4aa 0%, #00b894 100%);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            box-shadow: 0 4px 15px rgba(0, 212, 170, 0.3);
+            height: 40px;
+            text-decoration: none;
+        }
+
+        .btn-lobby {
+            padding: 0 var(--space-4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            height: 40px;
+            text-decoration: none;
+        }
+
+        .btn-lobby:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-create-room:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 170, 0.4);
+        }
+
+        .btn-create-room:disabled {
+            background: rgba(255, 255, 255, 0.2);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .panel-body { padding: var(--space-5); }
+
+        .header-bar {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-4);
+            border: 1px solid var(--border-color);
+        }
+
+        .status-item {
+            text-align: center;
+            padding: var(--space-3);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+        }
+
+        .status-item .label { font-size: 12px; color: var(--text-secondary); margin-bottom: var(--space-2); letter-spacing: 1px; }
+        .status-item .value { font-size: 28px; font-weight: 700; color: var(--text-primary); }
+        .status-item .value.highlight { color: #ff6b6b; }
+        .status-item .value.success { color: var(--success); }
+
+        /* 房间号链接样式 */
+        .room-id-container {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .room-link {
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .room-link:hover .value {
+            color: var(--success);
+            text-shadow: 0 0 20px rgba(0, 212, 170, 0.5);
+        }
+
+        .btn-copy {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: var(--space-1) var(--space-2);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            opacity: 0.7;
+        }
+
+        .btn-copy:hover {
+            background: rgba(255, 255, 255, 0.2);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .btn-copy.copied {
+            background: var(--success);
+            opacity: 1;
+        }
+
+        .game-visualization {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+            border: 1px solid var(--border-color);
+        }
+
+        .game-visualization h3 { font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-3); letter-spacing: 1px; }
+
+        .mission-track { display: flex; justify-content: space-between; gap: var(--space-3); }
+
+        .mission-dot {
+            flex: 1;
+            aspect-ratio: 1;
+            max-width: 70px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--border-color);
+            transition: all var(--transition-normal);
+            position: relative;
+        }
+
+        .mission-dot .round { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
+        .mission-dot .size { font-size: 18px; font-weight: 700; }
+
+        .mission-dot.success { background: var(--success-light); border-color: var(--success); color: var(--success); }
+        .mission-dot.fail { background: var(--danger-light); border-color: var(--danger); color: var(--danger); }
+        .mission-dot.current { background: var(--success-light); border-color: var(--success); color: var(--success); box-shadow: 0 0 30px rgba(0, 212, 170, 0.4); }
+        .mission-dot.current::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid var(--success);
+            opacity: 0.5;
+        }
+
+        .control-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+            border: 1px solid var(--border-color);
+        }
+
+        .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+        .control-group { display: flex; flex-direction: column; gap: var(--space-3); }
+        .control-group-title { font-size: 12px; color: var(--text-secondary); letter-spacing: 1px; }
+        .control-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+
+        .btn-control {
+            padding: var(--space-3);
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all var(--transition-normal);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            height: 64px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-control:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.12); }
+        .btn-control.p1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; }
+        .btn-control.p2 { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .btn-control.danger { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border: none; }
+        .btn-control:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .bottom-action {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: var(--space-4);
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            border: none;
+            box-sizing: border-box;
+        }
+
+        .bottom-action:hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5); }
+        .bottom-action:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .bottom-action-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-4);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .now-playing-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+            border: 1px solid var(--border-color);
+        }
+
+        .now-playing-section h3 { font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-3); letter-spacing: 1px; }
+
+        .now-playing-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border: 1px solid var(--border-color);
+            min-height: 80px;
+        }
+
+        .playing-info { display: flex; align-items: center; gap: 16px; }
+        .playing-number { font-size: 36px; font-weight: 800; color: var(--success); min-width: 70px; text-align: center; text-shadow: 0 0 20px rgba(0, 212, 170, 0.5); }
+        .playing-name { font-size: 14px; font-weight: 600; color: var(--text-primary); flex: 1; }
+
+        .playing-progress { display: flex; align-items: center; gap: var(--space-2); }
+        .progress-bar { flex: 1; height: 4px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--success); border-radius: 2px; transition: width 0.3s; }
+        .progress-text { font-size: 12px; color: var(--text-muted); min-width: 35px; text-align: right; }
+
+        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+
+        .observability-panel, .feature-tracker {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            border: 1px solid var(--border-color);
+            min-height: 300px;
+        }
+
+        .observability-panel h3, .feature-tracker h3 {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-3);
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            padding: 4px 12px;
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .log-container { display: flex; flex-direction: column; gap: var(--space-2); max-height: 250px; overflow-y: auto; }
+        .log-entry { padding: var(--space-2) var(--space-3); background: rgba(255, 255, 255, 0.05); border-radius: 4px; font-size: 12px; border-left: 3px solid var(--info); }
+        .log-entry .timestamp { color: var(--text-muted); margin-right: var(--space-2); }
+
+        .feature-list { display: flex; flex-direction: column; gap: var(--space-2); }
+        .feature-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); background: rgba(255, 255, 255, 0.05); border-radius: var(--radius-md); border-left: 3px solid transparent; }
+        .feature-item.completed { border-left-color: var(--success); background: var(--success-light); }
+        .feature-item.active { border-left-color: var(--warning); background: var(--warning-light); }
+        .feature-item .icon { font-size: 20px; width: 28px; text-align: center; }
+        .feature-item .name { flex: 1; font-size: 14px; }
+        .feature-item .status { font-size: 11px; padding: var(--space-1) var(--space-3); border-radius: 12px; background: rgba(255, 255, 255, 0.1); }
+
+        @media (max-width: 900px) {
+            .panel-header { flex-direction: column; gap: var(--space-3); text-align: center; }
+            .header-right { width: 100%; justify-content: center; }
+            .header-bar { grid-template-columns: repeat(2, 1fr); }
+            .control-grid, .bottom-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ===== 模态框样式 ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: var(--space-6);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: var(--space-4);
+            color: var(--warning);
+        }
+        .modal-message {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-6);
+            line-height: 1.6;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: var(--space-3);
+            justify-content: center;
+        }
+        .modal-btn {
+            padding: var(--space-3) var(--space-5);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 100px;
+        }
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+        .modal-btn-cancel {
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .modal-btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .modal-btn-confirm {
+            background: linear-gradient(135deg, var(--danger) 0%, #c0392b 100%);
+            color: white;
+        }
+        .modal-btn-confirm:hover {
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        /* ===== 长按按钮样式 ===== */
+        .btn-control {
+            position: relative;
+            overflow: hidden;
+        }
+        .long-press-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 0%;
+            background: linear-gradient(90deg, var(--success) 0%, var(--warning) 100%);
+            transition: width 0.1s linear;
+            border-radius: 0 0 0 var(--radius-md);
+        }
+        .btn-control.long-pressing .long-press-progress {
+            width: 100%;
+            transition: width 3s linear;
+        }
+        .btn-control.long-pressing {
+            transform: scale(0.98);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ===== 音频输出控制按钮（合并语音输出选择和蓝牙连接） ===== */
+        .btn-audio-control {
+            padding: 0 16px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .btn-audio-control:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .btn-audio-control.web-mode {
+            background: rgba(0, 212, 170, 0.3);
+            border-color: var(--success);
+        }
+        .btn-audio-control.device-mode {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: var(--primary-500);
+        }
+        .btn-audio-control.connecting {
+            background: rgba(255, 193, 7, 0.3);
+            border-color: var(--warning);
+            animation: pulse 1s infinite;
+        }
+        .btn-audio-control .icon {
+            font-size: 18px;
+        }
+        .btn-audio-control .label {
+            font-size: 13px;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* 音频模式选择弹窗 */
+        .audio-mode-popup {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 12px;
+            z-index: 1000;
+            min-width: 220px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
+        .audio-mode-popup.show { display: block; }
+        .audio-mode-popup-title {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .audio-mode-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 4px;
+        }
+        .audio-mode-option:hover { background: rgba(255,255,255,0.08); }
+        .audio-mode-option.active {
+            background: rgba(0, 212, 170, 0.15);
+            border: 1px solid var(--success);
+        }
+        .audio-mode-option .icon { font-size: 20px; }
+        .audio-mode-option .label { font-size: 14px; font-weight: 600; color: #fff; flex: 1; }
+        .audio-mode-option .status { font-size: 11px; color: var(--success); }
+        .audio-mode-option .desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 模态框 -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">⚠️ 确认操作</div>
+            <div class="modal-message" id="modalMessage">确定要执行此操作吗？</div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
+                <button class="modal-btn modal-btn-confirm" id="modalConfirmBtn" onclick="confirmModalAction()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main-panel">
+            <!-- 面板头部 -->
+            <div class="panel-header">
+                <div class="header-left">
+                    <h1>🎭 阿瓦隆语音主控面板</h1>
+                    <div class="subtitle">创建房间 & 游戏控制一体化</div>
+                </div>
+                <div class="header-right">
+                    <a href="/lobby.html" class="btn-lobby" title="大厅">
+                        <span></span>
+                        <span>大厅</span>
+                    </a>
+                    <div class="audio-output-wrapper" style="position:relative;">
+                        <button class="btn-audio-control web-mode" onclick="toggleAudioMode(event)" id="btn-audio-control" title="音频输出设置">
+                            <span class="icon" id="audio-control-icon">🔊</span>
+                            <span class="label" id="audio-control-label">网页播放</span>
+                        </button>
+                        <div class="audio-mode-popup" id="audio-mode-popup">
+                            <div class="audio-mode-popup-title">选择音频输出方式</div>
+                            <div class="audio-mode-option active" onclick="setAudioMode(event, 'web')" id="mode-option-web">
+                                <span class="icon">🔊</span>
+                                <div style="flex:1">
+                                    <div class="label">网页播放</div>
+                                    <div class="desc">使用浏览器播放语音</div>
+                                </div>
+                                <span class="status" id="status-web">当前</span>
+                            </div>
+                            <div class="audio-mode-option" onclick="setAudioMode(event, 'device')" id="mode-option-device">
+                                <span class="icon">📱</span>
+                                <div style="flex:1">
+                                    <div class="label">设备播放</div>
+                                    <div class="desc">连接蓝牙音箱播放</div>
+                                </div>
+                                <span class="status" id="status-device"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="player-count-display">
+                        <button class="btn-count" onclick="changePlayerCount(-1)" id="btn-decrease">−</button>
+                        <span class="count" id="player-count">5</span>
+                        <button class="btn-count" onclick="changePlayerCount(1)" id="btn-increase">+</button>
+                    </div>
+                    <button class="btn-create-room" onclick="manualCreateRoom()" id="btn-create">
+                        <span></span>
+                        <span>创建房间</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 面板主体 -->
+            <div class="panel-body">
+                <!-- 头部状态栏 -->
+                <div class="header-bar">
+                    <div class="status-item room-id-item">
+                        <div class="label">房间号</div>
+                        <div class="room-id-container">
+                            <a href="#" class="room-link" id="room-link" onclick="copyRoomLink(event)" title="点击复制链接">
+                                <span class="value" id="room-id">----</span>
+                            </a>
+                            <button class="btn-copy" onclick="copyRoomLink(event)" title="复制链接">
+                                📋
+                            </button>
+                        </div>
+                        <div class="room-url" id="room-url" style="position: absolute; left: -9999px; font-size: 11px; color: var(--text-muted);"></div>
+                    </div>
+                    <div class="status-item">
+                        <div class="label">玩家人数</div>
+                        <div class="value success" id="player-status">0/5人</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="label">当前轮次</div>
+                        <div class="value highlight" id="current-round">第1轮</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="label">当前队长</div>
+                        <div class="value" id="current-leader">--</div>
+                    </div>
+                    <!-- 投票进度 -->
+                    <div class="status-item" id="vote-progress-item" style="display: none;">
+                        <div class="label">投票进度</div>
+                        <div class="value" id="vote-progress">0/5</div>
+                    </div>
+                </div>
+
+                <!-- 任务进度 -->
+                <div class="game-visualization">
+                    <h3>📊 任务进度</h3>
+                    <div class="mission-track" id="mission-track">
+                        <div class="mission-dot current" data-round="1">
+                            <span class="round">第1轮</span>
+                            <span class="size">2人</span>
+                        </div>
+                        <div class="mission-dot" data-round="2">
+                            <span class="round">第2轮</span>
+                            <span class="size">3人</span>
+                        </div>
+                        <div class="mission-dot" data-round="3">
+                            <span class="round">第3轮</span>
+                            <span class="size">2人</span>
+                        </div>
+                        <div class="mission-dot" data-round="4">
+                            <span class="round">第4轮</span>
+                            <span class="size">3人</span>
+                        </div>
+                        <div class="mission-dot" data-round="5">
+                            <span class="round">第5轮</span>
+                            <span class="size">3人</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 控制按钮区域 -->
+                <div class="control-section">
+                    <div class="control-grid">
+                        <div class="control-group">
+                            <div class="control-group-title">备用控制 (P2)</div>
+                            <div class="control-buttons">
+                                <button class="btn-control danger" onclick="mute()" id="btn-mute">
+                                    <span>🔇</span>
+                                    <span>静音</span>
+                                </button>
+                                <button class="btn-control p2" onclick="previousPhase()" id="btn-prev">
+                                    <span>⏮️</span>
+                                    <span>上一阶段</span>
+                                </button>
+                                <button class="btn-control p2" id="btn-new" 
+                                    onmousedown="startNewGameLongPress(event)" 
+                                    onmouseup="cancelNewGameLongPress()"
+                                    onmouseleave="cancelNewGameLongPress()"
+                                    ontouchstart="startNewGameLongPress(event)"
+                                    ontouchend="cancelNewGameLongPress()"
+                                    ontouchmove="handleTouchMove(event)">
+                                    <span>🔄</span>
+                                    <span id="btn-new-text">长按3秒重置</span>
+                                    <div class="long-press-progress" id="long-press-progress"></div>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="control-group-title">高频控制 (P1)</div>
+                            <div class="control-buttons">
+                                <button class="btn-control p1" onclick="wakeUp()" id="btn-wake">
+                                    <span>🎤</span>
+                                    <span>唤醒助手</span>
+                                </button>
+                                <button class="btn-control p1" onclick="skipAudio()" id="btn-skip">
+                                    <span>⏭️</span>
+                                    <span>跳过播报</span>
+                                </button>
+                                <button class="btn-control p1" onclick="repeatAudio()" id="btn-repeat">
+                                    <span>🔁</span>
+                                    <span>重复当前</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部大按钮 -->
+                <button class="bottom-action" onclick="smartNext()" id="btn-smart-next">
+                    <div class="bottom-action-content">
+                        <span>🏠</span>
+                        <span id="smart-next-text">创建房间开始游戏</span>
+                    </div>
+                </button>
+
+                <!-- 当前播放 -->
+                <div class="now-playing-section">
+                    <h3>🔊 当前播放</h3>
+                    <div class="now-playing-card">
+                        <div class="playing-info">
+                            <div class="playing-number" id="now-playing-number">-</div>
+                            <div class="playing-name" id="now-playing-name">等待创建房间...</div>
+                        </div>
+                        <div class="playing-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-text" id="progress-text">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部网格 -->
+                <div class="bottom-grid">
+                    <div class="observability-panel">
+                        <h3>
+                            <span>📝 系统日志</span>
+                            <button class="clear-btn" onclick="clearLogs()">清空</button>
+                        </h3>
+                        <div class="log-container" id="log-container">
+                            <div class="log-entry">
+                                <span class="timestamp">--:--:--</span>
+                                <span>[系统] 面板已加载，等待创建房间</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="feature-tracker">
+                        <h3>📋 游戏进度</h3>
+                        <div class="feature-list" id="feature-list">
+                            <div class="feature-item active" data-phase="waiting">
+                                <span class="icon">⏳</span>
+                                <span class="name">等待创建房间</span>
+                                <span class="status">进行中</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // ==================== 游戏状态 ====================
+        // 从 localStorage 恢复房间状态
+        const savedRoomId = localStorage.getItem('voicePanel_roomId');
+        const savedPlayerCount = localStorage.getItem('voicePanel_playerCount');
+        
+        let gameState = {
+            roomId: savedRoomId || null,
+            playerCount: savedPlayerCount ? parseInt(savedPlayerCount) : 5,
+            currentPlayers: 0,
+            currentRound: 1,
+            currentLeaderIndex: 0,
+            gamePhase: 'waiting',
+            missionResults: [],
+            isAudioMuted: false,
+            isPlaying: false
+        };
+
+        let socket = null;
+        let audioQueue = [];
+        let currentAudio = null;
+        
+        // 语音输出设备: 'web' (网页端) 或 'device' (设备端)
+        let audioOutputDevice = localStorage.getItem('audioOutputDevice') || 'web';
+
+        // 音频基础路径
+        const audioBasePath = '/audio/commands';
+
+        // 语音映射表（按文档 VOICE_PANEL_OPERATION_GUIDE.md）
+        const voiceMap = {
+            // 开场阶段
+            'CMD-001': { text: '欢迎各位来到阿瓦隆之夜！', folder: 'opening' },
+            'CMD-003': { text: '本局角色配置说明。', folder: 'opening' },
+            'CMD-004': { text: '房间已创建，请玩家加入。', folder: 'opening' },
+            'CMD-005': { text: '设置游戏人数完成。', folder: 'opening' },
+            'CMD-006': { text: '玩家加入了游戏。', folder: 'opening' },
+            'CMD-008': { text: '所有玩家已准备，游戏即将开始。', folder: 'opening' },
+            'CMD-009': { text: '现在分发身份牌。', folder: 'opening' },
+            'CMD-011': { text: '所有人闭上眼睛。', folder: 'opening' },
+            'CMD-013': { text: '重置游戏。', folder: 'opening' },
+            // 夜间阶段（新6步流程）
+            'CMD-N01': { text: '夜间阶段开始。请所有玩家闭眼，在桌面中央放置拳头，保持大拇指放下。', folder: 'night' },
+            'CMD-N02': { text: '请除了奥伯伦以外的所有坏人睁眼，互相确认彼此身份。', folder: 'night' },
+            'CMD-N03': { text: '坏人确认完毕，请闭眼。所有玩家放下大拇指。', folder: 'night' },
+            'CMD-N04': { text: '请所有坏人竖起你们的大拇指。', folder: 'night' },
+            'CMD-N05': { text: '梅林请睁眼，观察这些竖起大拇指的坏人，记住他们的位置。', folder: 'night' },
+            'CMD-N06': { text: '请收回大拇指，梅林请闭眼。', folder: 'night' },
+            'CMD-N08': { text: '请梅林和莫甘娜竖起你们的大拇指。', folder: 'night' },
+            'CMD-N09': { text: '派西维尔请睁眼，观察这两位玩家，分辨谁是梅林。', folder: 'night' },
+            'CMD-N10': { text: '请收回大拇指，派西维尔请闭眼。', folder: 'night' },
+            'CMD-N12': { text: '天亮了，请所有玩家睁眼，夜晚阶段结束，游戏正式开始。', folder: 'night' },
+            // 白天阶段
+            'CMD-022': { text: '天亮了！', folder: 'day' },
+            'CMD-041': { text: '白天开始。', folder: 'day' },
+            'CMD-042': { text: '本轮队长，请组织队伍。', folder: 'day' },
+            'CMD-043': { text: '队长顺时针传递。', folder: 'day' },
+            'CMD-044': { text: '请选择队员执行任务。', folder: 'day' },
+            'CMD-045': { text: '队长选择了队员。', folder: 'day' },
+            'CMD-046': { text: '任务完成！', folder: 'day' },
+            'CMD-047': { text: '清空当前队伍，请重新选择。', folder: 'day' },
+            'CMD-048': { text: '讨论时间，请大家发言推理。', folder: 'day' },
+            'CMD-052': { text: '讨论结束，准备投票。', folder: 'day' },
+            'CMD-053D': { text: '队长请尽快选择队员。', folder: 'day' },
+            // 投票阶段
+            'CMD-071': { text: '投票开始！', folder: 'voting' },
+            'CMD-072': { text: '我同意这个队伍。', folder: 'voting' },
+            'CMD-073': { text: '我反对这个队伍。', folder: 'voting' },
+            'CMD-074': { text: '投票通过！队伍执行任务。', folder: 'voting' },
+            'CMD-075': { text: '投票否决！队长轮换，重新组队。', folder: 'voting' },
+            'CMD-077': { text: '还有人未投票，请尽快投票。', folder: 'voting' },
+            'CMD-083': { text: '已连续多次否决，第五次否决后坏人直接获胜。', folder: 'voting' },
+            // 任务阶段
+            'CMD-091': { text: '任务开始！', folder: 'mission' },
+            'CMD-092': { text: '我选择任务成功。', folder: 'mission' },
+            'CMD-093': { text: '我选择任务失败。', folder: 'mission' },
+            'CMD-094': { text: '任务成功！', folder: 'mission' },
+            'CMD-095': { text: '任务失败！', folder: 'mission' },
+            'CMD-101': { text: '第四轮任务需要2个失败才失败。', folder: 'mission' },
+            'CMD-105': { text: '最终轮！本轮将决定胜负。', folder: 'mission' },
+            // 刺杀阶段
+            'CMD-111': { text: '进入刺杀阶段。', folder: 'assassination' },
+            'CMD-112': { text: '刺杀开始！刺客请选择梅林。', folder: 'assassination' },
+            'CMD-113': { text: '我选择刺杀。', folder: 'assassination' },
+            'CMD-114': { text: '刺客确认刺杀吗？', folder: 'assassination' },
+            'CMD-115': { text: '刺客执行刺杀！', folder: 'assassination' },
+            'CMD-116': { text: '刺杀成功！坏人获胜！', folder: 'assassination' },
+            'CMD-117': { text: '刺杀失败！好人获胜！', folder: 'assassination' },
+            // 结束阶段
+            'CMD-126': { text: '游戏结束！好人阵营获胜！', folder: 'ending' },
+            'CMD-127': { text: '游戏结束！坏人阵营获胜！', folder: 'ending' },
+            'CMD-128': { text: '身份公布。', folder: 'ending' },
+            'CMD-132': { text: '是否再来一局？', folder: 'ending' }
+        };
+
+        // 数字语音映射
+        const numVoiceMap = {
+            0: 'NUM-0', 1: 'NUM-1', 2: 'NUM-2', 3: 'NUM-3', 4: 'NUM-4',
+            5: 'NUM-5', 6: 'NUM-6', 7: 'NUM-7', 8: 'NUM-8', 9: 'NUM-9', 10: 'NUM-10'
+        };
+
+        // 语音片段映射
+        const segmentMap = {
+            'ROOM': 'SEG-ROOM',
+            'NUMBER': 'SEG-NUMBER',
+            'PERSON': 'SEG-PERSON',
+            'SET-PERSON': 'SEG-SET-PERSON'
+        };
+
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            addLog('系统', '语音面板已加载');
+            addLog('调试', 'DOMContentLoaded 事件触发');
+
+            // 从 URL 参数读取 roomId
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlRoomId = urlParams.get('roomId');
+            if (urlRoomId) {
+                addLog('调试', `从 URL 检测到房间号: ${urlRoomId}`);
+                gameState.roomId = urlRoomId;
+                localStorage.setItem('voicePanel_roomId', urlRoomId);
+            }
+
+            // 初始化语音输出设备UI
+            updateAudioControlUI();
+
+            // 连接服务器以监听设备状态（无论是否有房间号）
+            connectToServerForDeviceStatus();
+
+            // 如果有保存的房间号，尝试自动重连
+            if (gameState.roomId) {
+                addLog('系统', `检测到已保存的房间 ${gameState.roomId}，尝试自动重连...`);
+                setTimeout(() => {
+                    reconnectToRoom();
+                }, 500);
+            }
+
+            updateUI();
+        });
+        
+        // 连接服务器以监听设备状态更新
+        function connectToServerForDeviceStatus() {
+            // 如果 socket 已存在且已连接，不再创建
+            if (socket && socket.connected) {
+                console.log('[网页端] socket 已连接，跳过创建');
+                return;
+            }
+            
+            console.log('[网页端] 创建 socket 连接以监听设备状态');
+            socket = io();
+            
+            socket.on('connect', () => {
+                console.log('[网页端] socket 已连接');
+                addLog('系统', '已连接到服务器');
+                
+                // 请求设备状态（蓝牙连接状态）
+                socket.emit('request-device-status');
+            });
+            
+            // 监听设备状态更新（蓝牙连接状态）
+            socket.on('device-status-update', (data) => {
+                console.log('[网页端] 收到设备状态更新:', data);
+                addLog('系统', `设备状态: 蓝牙${data.bluetoothConnected ? '已连接' : '未连接'}`);
+                
+                // 如果设备端蓝牙已连接，自动切换到设备播放模式
+                if (data.bluetoothConnected) {
+                    if (audioOutputDevice !== 'device') {
+                        audioOutputDevice = 'device';
+                        localStorage.setItem('audioOutputDevice', 'device');
+                        updateAudioControlUI();
+                        addLog('系统', `已自动切换到设备播放 (${data.bluetoothSpeakerName || '蓝牙音箱'})`);
+                    }
+                } else {
+                    // 设备端蓝牙未连接，保持网页播放模式
+                    if (audioOutputDevice === 'device') {
+                        audioOutputDevice = 'web';
+                        localStorage.setItem('audioOutputDevice', 'web');
+                        updateAudioControlUI();
+                        addLog('系统', '设备蓝牙未连接，自动切换到网页播放');
+                    }
+                }
+            });
+            
+            socket.on('disconnect', () => {
+                console.log('[网页端] socket 已断开');
+            });
+        }
+        
+        // 切换音频模式弹窗
+        function toggleAudioMode(event) {
+            if (event) event.stopPropagation();
+            const popup = document.getElementById('audio-mode-popup');
+            popup.classList.toggle('show');
+        }
+
+        // 设置音频输出模式
+        function setAudioMode(event, mode) {
+            if (event) event.stopPropagation();
+            
+            if (mode === 'device') {
+                // 选择设备模式时，先检查蓝牙连接
+                if (!socket || !socket.connected) {
+                    addLog('系统', '未连接到服务器，无法切换到设备播放');
+                    document.getElementById('audio-mode-popup').classList.remove('show');
+                    return;
+                }
+
+                // 显示连接中状态
+                const btn = document.getElementById('btn-audio-control');
+                btn.classList.add('connecting');
+                btn.innerHTML = '<span class="icon">⏳</span><span class="label">连接中...</span>';
+                document.getElementById('audio-mode-popup').classList.remove('show');
+                addLog('系统', '正在连接蓝牙音箱...');
+
+                // 发送蓝牙连接指令到设备端
+                socket.emit('bluetooth-connect', {}, (response) => {
+                    btn.classList.remove('connecting');
+
+                    if (response && response.success) {
+                        // 蓝牙连接成功，切换到设备模式
+                        audioOutputDevice = 'device';
+                        localStorage.setItem('audioOutputDevice', 'device');
+                        updateAudioControlUI();
+                        addLog('系统', `已切换到设备播放，蓝牙音箱: ${response.speakerName || '未知设备'}`);
+                    } else {
+                        // 蓝牙连接失败，保持网页模式
+                        audioOutputDevice = 'web';
+                        localStorage.setItem('audioOutputDevice', 'web');
+                        updateAudioControlUI();
+                        addLog('系统', `蓝牙连接失败: ${response ? response.message : '未知错误'}，保持网页播放`);
+                    }
+                });
+            } else {
+                // 切换到网页模式
+                audioOutputDevice = 'web';
+                localStorage.setItem('audioOutputDevice', 'web');
+                document.getElementById('audio-mode-popup').classList.remove('show');
+                updateAudioControlUI();
+                addLog('系统', '已切换到网页播放');
+            }
+        }
+
+        // 更新音频控制按钮UI
+        function updateAudioControlUI() {
+            const btn = document.getElementById('btn-audio-control');
+            const icon = document.getElementById('audio-control-icon');
+            const label = document.getElementById('audio-control-label');
+            const statusWeb = document.getElementById('status-web');
+            const statusDevice = document.getElementById('status-device');
+            const optionWeb = document.getElementById('mode-option-web');
+            const optionDevice = document.getElementById('mode-option-device');
+
+            if (audioOutputDevice === 'web') {
+                btn.className = 'btn-audio-control web-mode';
+                icon.textContent = '🔊';
+                label.textContent = '网页播放';
+                statusWeb.textContent = '当前';
+                statusDevice.textContent = '';
+                optionWeb.classList.add('active');
+                optionDevice.classList.remove('active');
+            } else {
+                btn.className = 'btn-audio-control device-mode';
+                icon.textContent = '📱';
+                label.textContent = '设备播放';
+                statusWeb.textContent = '';
+                statusDevice.textContent = '当前';
+                optionWeb.classList.remove('active');
+                optionDevice.classList.add('active');
+            }
+        }
+
+        // 点击外部关闭弹窗
+        document.addEventListener('click', (e) => {
+            const popup = document.getElementById('audio-mode-popup');
+            const btn = document.getElementById('btn-audio-control');
+            if (popup && btn && !popup.contains(e.target) && !btn.contains(e.target)) {
+                popup.classList.remove('show');
+            }
+        });
+
+        // 重新连接到房间
+        function reconnectToRoom() {
+            if (!gameState.roomId) {
+                addLog('系统', '没有保存的房间号');
+                return;
+            }
+            
+            addLog('系统', `正在重新连接到房间 ${gameState.roomId}...`);
+            
+            // 创建 socket 连接
+            socket = io();
+            
+            socket.on('connect', () => {
+                addLog('系统', '已连接到服务器');
+                
+                // 请求设备状态（蓝牙连接状态）
+                socket.emit('request-device-status');
+                
+                // 发送重连请求
+                socket.emit('controller-reconnect', {
+                    roomId: gameState.roomId
+                }, (response) => {
+                    if (response.success) {
+                        addLog('系统', '成功重新加入房间');
+                        // 更新游戏状态
+                        if (response.gameState) {
+                            gameState.currentRound = response.gameState.currentRound;
+                            gameState.currentLeaderIndex = response.gameState.currentLeaderIndex;
+                            gameState.gamePhase = response.gameState.gamePhase;
+                            gameState.playerCount = response.gameState.players?.length || gameState.playerCount;
+                        }
+                        
+                        // 更新UI
+                        document.getElementById('room-id').textContent = gameState.roomId;
+                        document.getElementById('player-count').textContent = gameState.playerCount;
+                        document.getElementById('btn-create').disabled = true;
+                        document.getElementById('btn-decrease').disabled = true;
+                        document.getElementById('btn-increase').disabled = true;
+                        
+                        const playerUrl = `${window.location.origin}/player-modular.html?roomId=${gameState.roomId}`;
+                        document.getElementById('room-url').textContent = playerUrl;
+                        
+                        updateUI();
+                        setupSocketListeners();
+                    } else {
+                        addLog('警告', `重新加入房间失败: ${response.message}`);
+                        addLog('系统', '房间可能已过期，请创建新房间');
+                        // 清除保存的房间号
+                        localStorage.removeItem('voicePanel_roomId');
+                        gameState.roomId = null;
+                    }
+                });
+            });
+            
+            socket.on('connect_error', (error) => {
+                addLog('错误', `连接失败: ${error.message}`);
+            });
+        }
+
+        // ==================== 创建房间 ====================
+        function changePlayerCount(delta) {
+            const newCount = gameState.playerCount + delta;
+            if (newCount >= 5 && newCount <= 10) {
+                gameState.playerCount = newCount;
+                document.getElementById('player-count').textContent = newCount;
+                updatePlayerStatus();
+                addLog('系统', `人数设置为 ${newCount} 人`);
+                // 播报人数设置：数字 + 人局 (如"6人局")
+                // SEG-SET-PERSON 实际是"人局"的意思
+                playNumberSequence([numVoiceMap[newCount], 'SEG-SET-PERSON']);
+            }
+        }
+
+        // 顺序播放多个音频
+        function playNumberSequence(audioIds) {
+            if (gameState.isAudioMuted || audioIds.length === 0) return;
+
+            // 如果选择设备端，发送命令到设备播放（使用设备的异步播放）
+            if (audioOutputDevice === 'device' && socket && socket.connected) {
+                addLog('调试', '使用设备端播放音频序列');
+                audioIds.forEach((audioId, index) => {
+                    setTimeout(() => {
+                        if (audioId.startsWith('NUM-')) {
+                            socket.emit('play-audio-command', { commandId: audioId });
+                        } else if (audioId.startsWith('SEG-')) {
+                            socket.emit('play-audio-command', { commandId: audioId });
+                        }
+                    }, index * 1500); // 每隔1.5秒发送一个命令
+                });
+                return;
+            }
+
+            // 否则在网页端播放
+            // 停止之前的播放
+            stopAllAudio();
+
+            let index = 0;
+
+            function playNext() {
+                if (index >= audioIds.length) {
+                    currentAudio = null;
+                    return;
+                }
+
+                const audioId = audioIds[index];
+                index++;
+
+                let audioPath;
+                if (audioId.startsWith('NUM-')) {
+                    audioPath = `${audioBasePath}/numbers/${audioId}.mp3`;
+                } else if (audioId.startsWith('SEG-')) {
+                    audioPath = `${audioBasePath}/segments/${audioId}.mp3`;
+                } else {
+                    playNext();
+                    return;
+                }
+
+                const audio = new Audio(audioPath);
+                currentAudio = audio;
+
+                audio.onended = () => {
+                    currentAudio = null;
+                    playNext();
+                };
+
+                audio.onerror = () => {
+                    console.warn('序列音频加载失败:', audioPath);
+                    currentAudio = null;
+                    playNext();
+                };
+
+                audio.play().catch(() => {
+                    currentAudio = null;
+                    playNext();
+                });
+            }
+
+            playNext();
+        }
+
+        // 标记是否用户主动点击创建房间
+        let isUserInitiatedCreate = false;
+        // 标记是否已经创建过房间（防止重复创建）
+        let hasCreatedRoom = false;
+        // 标记是否已经发送过创建房间请求
+        let hasSentCreateRequest = false;
+
+        // 用户手动点击创建房间
+        function manualCreateRoom() {
+            addLog('调试', '用户点击创建房间按钮');
+            isUserInitiatedCreate = true;
+            createRoom();
+        }
+
+        // 断开房间连接
+        function disconnectRoom() {
+            addLog('系统', '正在断开连接...');
+            
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+            
+            // 清除 localStorage
+            localStorage.removeItem('voicePanel_roomId');
+            localStorage.removeItem('voicePanel_playerCount');
+            
+            // 重置状态
+            gameState.roomId = null;
+            gameState.currentRound = 0;
+            gameState.currentLeaderIndex = 0;
+            gameState.gamePhase = 'waiting';
+            gameState.currentPlayers = 0;
+            hasCreatedRoom = false;
+            isUserInitiatedCreate = false;
+            hasSentCreateRequest = false;
+            
+            // 更新UI
+            document.getElementById('room-id').textContent = '--';
+            document.getElementById('btn-create').style.display = 'inline-block';
+            document.getElementById('btn-disconnect').style.display = 'none';
+            document.getElementById('btn-create').disabled = false;
+            document.getElementById('btn-decrease').disabled = false;
+            document.getElementById('btn-increase').disabled = false;
+            document.getElementById('smart-next-text').textContent = '等待玩家加入';
+            document.getElementById('room-url').textContent = '';
+            
+            addLog('系统', '已断开连接，可以创建新房间');
+            updateUI();
+        }
+
+        function createRoom() {
+            // 获取调用栈
+            const stack = new Error().stack;
+            addLog('调试', `createRoom被调用，调用栈: ${stack}`);
+            addLog('调试', `socket=${socket}, connected=${socket?.connected}, hasCreatedRoom=${hasCreatedRoom}, isUserInitiatedCreate=${isUserInitiatedCreate}, roomId=${gameState.roomId}`);
+            
+            // 如果已经创建过房间（根据gameState.roomId判断），不再创建
+            if (gameState.roomId) {
+                addLog('系统', `房间 ${gameState.roomId} 已存在，如需重新开始请点击「新开一局」按钮`);
+                return;
+            }
+
+            // 如果已经创建过房间但还没设置 roomId，可能状态不一致
+            if (hasCreatedRoom || hasSentCreateRequest) {
+                addLog('警告', '创建状态异常，强制重置');
+                hasCreatedRoom = false;
+                hasSentCreateRequest = false;
+                isUserInitiatedCreate = false;
+            }
+
+            // 如果不是用户主动点击，不自动创建
+            if (!isUserInitiatedCreate) {
+                addLog('系统', '请手动点击创建房间按钮');
+                return;
+            }
+
+            if (socket && socket.connected) {
+                addLog('调试', 'Socket已连接，直接创建房间');
+                // 先设置好监听器，确保能收到玩家加入事件
+                setupSocketListeners();
+                // 直接发送创建房间请求
+                sendCreateRoomRequest();
+                return;
+            }
+
+            // 如果 socket 存在但已断开，先清理
+            if (socket) {
+                addLog('调试', '清理已断开的socket');
+                socket.disconnect();
+                socket = null;
+            }
+
+            addLog('调试', '创建新的socket连接');
+            socket = io();
+
+            socket.on('connect', () => {
+                addLog('系统', '已连接到服务器');
+
+                // 请求设备状态（蓝牙连接状态）
+                socket.emit('request-device-status');
+
+                // 发送创建房间请求
+                sendCreateRoomRequest();
+            });
+
+            // 发送创建房间请求
+            function sendCreateRoomRequest() {
+                // 如果已经发送过创建请求，不再发送
+                if (hasSentCreateRequest) {
+                    addLog('系统', '已经创建过房间，跳过重复创建');
+                    return;
+                }
+
+                // 标记已发送创建请求
+                hasSentCreateRequest = true;
+                // 标记已创建房间
+                hasCreatedRoom = true;
+
+                socket.emit('room-create', {
+                    playerCount: gameState.playerCount
+                }, (response) => {
+                    if (response.success) {
+                        gameState.roomId = response.roomId;
+                        // 保存到 localStorage
+                        localStorage.setItem('voicePanel_roomId', response.roomId);
+                        localStorage.setItem('voicePanel_playerCount', gameState.playerCount);
+
+                        document.getElementById('room-id').textContent = response.roomId;
+                        document.getElementById('btn-create').disabled = true;
+                        document.getElementById('btn-decrease').disabled = true;
+                        document.getElementById('btn-increase').disabled = true;
+                        document.getElementById('smart-next-text').textContent = '等待玩家加入';
+
+                        // 保存房间链接（用于复制功能）
+                        const playerUrl = `${window.location.origin}/player-modular.html?roomId=${response.roomId}`;
+                        const roomUrlDiv = document.getElementById('room-url');
+                        roomUrlDiv.textContent = playerUrl;
+
+                        addLog('成功', `房间 ${response.roomId} 创建成功`);
+                        addLog('系统', `玩家链接: ${playerUrl}`);
+                        updateGamePhase('waiting', '等待玩家加入');
+                        updateMissionTrack();
+
+                        // 播放创建房间语音序列：房间已创建 + 房间 + 数字 + 号
+                        // 使用语音片段拼接：SEG-ROOM-CREATED + SEG-ROOM + 数字 + SEG-NUMBER
+                        const roomIdDigits = response.roomId.toString().split('');
+                        const roomAudioSequence = ['SEG-ROOM-CREATED', 'SEG-ROOM'];
+                        roomIdDigits.forEach(digit => {
+                            roomAudioSequence.push(numVoiceMap[parseInt(digit)]);
+                        });
+                        roomAudioSequence.push('SEG-NUMBER');
+
+                        // 播放完整的房间创建语音序列
+                        playNumberSequence(roomAudioSequence);
+                    } else {
+                        addLog('错误', response.message || '创建房间失败');
+                        hasCreatedRoom = false; // 创建失败，允许重试
+                        hasSentCreateRequest = false; // 重置请求标记
+                    }
+                });
+            }
+
+            setupSocketListeners();
+        }
+
+        function setupSocketListeners() {
+            // 监听设备状态更新（蓝牙连接状态）
+            socket.on('device-status-update', (data) => {
+                console.log('[网页端] 收到设备状态更新:', data);
+                addLog('系统', `设备状态: 蓝牙${data.bluetoothConnected ? '已连接' : '未连接'}`);
+                
+                // 如果设备端蓝牙已连接，自动切换到设备播放模式
+                if (data.bluetoothConnected) {
+                    if (audioOutputDevice !== 'device') {
+                        audioOutputDevice = 'device';
+                        localStorage.setItem('audioOutputDevice', 'device');
+                        updateAudioControlUI();
+                        addLog('系统', `已自动切换到设备播放 (${data.bluetoothSpeakerName || '蓝牙音箱'})`);
+                    }
+                } else {
+                    // 设备端蓝牙未连接，保持网页播放模式
+                    if (audioOutputDevice === 'device') {
+                        audioOutputDevice = 'web';
+                        localStorage.setItem('audioOutputDevice', 'web');
+                        updateAudioControlUI();
+                        addLog('系统', '设备蓝牙未连接，自动切换到网页播放');
+                    }
+                }
+            });
+
+            // 玩家加入（语音面板专用）
+            socket.on('controller-player-joined', (data) => {
+                gameState.currentPlayers = data.playerCount || 0;
+                updatePlayerStatus();
+                addLog('玩家', `${data.playerName} 加入房间`);
+
+                if (gameState.currentPlayers >= gameState.playerCount) {
+                    document.getElementById('smart-next-text').textContent = '开始游戏';
+                    addLog('系统', '所有玩家已加入，点击开始游戏');
+                    updateUI();
+                }
+            });
+
+            // 角色分配 - 服务器分配角色后，先进入role-confirm显示引导，再进入night
+            // 防止重复播放的标记
+            let hasPlayedRoleConfirm = false;
+
+            socket.on('controller-roles-assigned', (data) => {
+                addLog('调试', `收到controller-roles-assigned: gamePhase=${data.gamePhase}, players=${data.players?.length}`);
+
+                // 清除超时保护
+                if (processingTimeout) {
+                    clearTimeout(processingTimeout);
+                    processingTimeout = null;
+                    addLog('调试', '清除超时定时器(roles-assigned)');
+                }
+
+                // 如果已经在role-confirm或更后的阶段，忽略此事件（防止重复处理）
+                const currentPhaseIndex = getPhaseIndex(gameState.gamePhase);
+                const newPhaseIndex = getPhaseIndex('role-confirm');
+                if (currentPhaseIndex >= newPhaseIndex) {
+                    addLog('调试', `忽略controller-roles-assigned: 当前阶段${gameState.gamePhase}已>=role-confirm`);
+                    return;
+                }
+
+                // 如果已经播放过role-confirm语音，不再重复播放
+                if (hasPlayedRoleConfirm) {
+                    addLog('调试', '忽略controller-roles-assigned: 已经播放过role-confirm语音');
+                    return;
+                }
+                hasPlayedRoleConfirm = true;
+
+                gameState.currentRound = 1;
+                gameState.currentLeaderIndex = 0;
+                gameState.gamePhase = 'role-confirm';
+                nightStep = 0;
+                addLog('游戏', '身份已分发，请确认');
+                updateGamePhase('role-confirm', '身份确认阶段');
+                addLog('调试', `设置按钮文字为: 进入夜间, isProcessing=${isProcessing}`);
+                updateUI(); // updateUI会调用updateSmartButtonText设置正确的按钮文字
+
+                // 播放分发身份语音（只在第一次进入role-confirm时播放）
+                addLog('调试', '播放CMD-009分发身份语音');
+                playCommandAudio('CMD-009');
+
+                // 释放锁，允许用户点击进入夜间（放在播放语音之后，防止重复触发）
+                isProcessing = false;
+                addLog('调试', `释放锁后 isProcessing=${isProcessing}`);
+            });
+
+            // 阶段变化
+            socket.on('mission-completed', (data) => {
+                try {
+                    console.log('[MISSION-COMPLETED] Event received:', JSON.stringify(data).substring(0, 200));
+                    addLog('调试', `任务完成: round=${data.round}, result=${data.result}, gamePhase=${data.gamePhase}`);
+                    
+                    // 任务结果语音播报
+                    if (data.result) {
+                        addLog('调试', `任务结果: ${data.result === 'success' ? '成功' : '失败'}`);
+                        playCommandAudio('CMD-046'); // 任务完成
+                    }
+                    
+                    // 仅更新轮次（不更新 gamePhase，等待 phase-changed 事件来更新）
+                    if (data.currentRound !== undefined) {
+                        gameState.currentRound = data.currentRound;
+                    }
+                    
+                    updateUI();
+                    isProcessing = false;
+                } catch (error) {
+                    console.error('[MISSION-COMPLETED] Error:', error);
+                    addLog('错误', `处理mission-completed出错: ${error.message}`);
+                    isProcessing = false;
+                }
+            });
+
+            // ====== 主动轮询机制：每秒检查服务器真实状态 ======
+            // 这是核心同步机制，不依赖Socket事件（Socket事件作为即时通知的优化）
+            let pollInterval = null;
+            if (gameState.roomId) {
+                pollInterval = setInterval(async () => {
+                    try {
+                        const response = await fetch(`/api/room/${gameState.roomId}/status`);
+                        if (response.ok) {
+                            const serverState = await response.json();
+                            const serverPhase = serverState.gamePhase;
+                            
+                            // 检测状态变化
+                            if (serverPhase && serverPhase !== gameState.gamePhase) {
+                                console.log('[POLL] Detected phase change:', gameState.gamePhase, '->', serverPhase);
+                                addLog('调试', `[POLL] 检测到阶段变化: ${gameState.gamePhase} -> ${serverPhase}`);
+                                
+                                // 直接更新客户端状态，不依赖Socket事件
+                                const oldPhase = gameState.gamePhase;
+                                gameState.gamePhase = serverPhase;
+                                gameState.currentRound = serverState.currentRound || gameState.currentRound;
+                                gameState.currentLeaderIndex = serverState.currentLeaderIndex !== undefined ? serverState.currentLeaderIndex : gameState.currentLeaderIndex;
+                                
+                                // 更新UI
+                                updateUI();
+                                
+                                // 更新按钮文字
+                                const smartNextText = document.getElementById('smart-next-text');
+                                if (smartNextText) {
+                                    if (serverPhase === 'team-building') {
+                                        smartNextText.textContent = '等待队长组队';
+                                    } else if (serverPhase === 'voting') {
+                                        smartNextText.textContent = '等待玩家投票';
+                                    } else if (serverPhase === 'mission') {
+                                        smartNextText.textContent = '等待任务执行';
+                                    } else if (serverPhase === 'assassination') {
+                                        smartNextText.textContent = '等待刺客选择';
+                                    }
+                                }
+                                
+                                addLog('调试', `[POLL] UI已更新: ${oldPhase} -> ${serverPhase}`);
+                                isProcessing = false;
+                            }
+                        }
+                    } catch (error) {
+                        // Ignore polling errors
+                    }
+                }, 1000); // 每1秒轮询一次
+            }
+
+            // Socket事件作为即时通知优化（但不是必需的）
+            // 注意：不再在 mission-completed 中更新 gamePhase，
+            // 以避免与 phase-changed 事件产生竞态条件导致 phase-changed 被忽略
+            socket.on('mission-completed', (data) => {
+                try {
+                    console.log('[MISSION-COMPLETED] Event received:', JSON.stringify(data).substring(0, 200));
+                    addLog('调试', `任务完成: round=${data.round}, result=${data.result}, gamePhase=${data.gamePhase}`);
+                    
+                    // 任务结果语音播报
+                    if (data.result) {
+                        addLog('调试', `任务结果: ${data.result === 'success' ? '成功' : '失败'}`);
+                        playCommandAudio('CMD-046'); // 任务完成
+                    }
+                    
+                    // 仅更新UI显示（不更新 gamePhase，等待 phase-changed 事件来更新）
+                    if (data.currentRound !== undefined) {
+                        gameState.currentRound = data.currentRound;
+                    }
+                    updateUI();
+                    isProcessing = false;
+                } catch (error) {
+                    console.error('[MISSION-COMPLETED] Error:', error);
+                    addLog('错误', `处理mission-completed出错: ${error.message}`);
+                    isProcessing = false;
+                }
+            });
+
+            socket.on('phase-changed', (data) => {
+                console.log('[PHASE-CHANGED-ENTRY] Handler called with data:', JSON.stringify(data).substring(0, 200));
+                try {
+                    const newPhase = data.phase || data.gamePhase;
+                    const prevPhase = data.previousPhase || '';
+                    console.log('[VOICE-PHASE] Received phase-changed:', JSON.stringify(data), 'resolved phase:', newPhase);
+                    console.log('[VOICE-PHASE] Current gameState.gamePhase:', gameState.gamePhase);
+                    addLog('调试', `收到phase-changed: phase=${newPhase}, previousPhase=${prevPhase}, currentRound=${data.currentRound}`);
+                    addLog('调试', `当前阶段: ${gameState.gamePhase}`);
+
+                    // 清除超时保护
+                    if (processingTimeout) {
+                        clearTimeout(processingTimeout);
+                        processingTimeout = null;
+                        addLog('调试', '清除超时定时器');
+                    }
+
+                    const previousPhase = gameState.gamePhase;
+
+                    // 如果新阶段比当前阶段还早（或相同），忽略（防止重复或回退）
+                    // 例外：从 mission 阶段回到 team-building 阶段是正常的新一轮开始
+                    const currentIndex = getPhaseIndex(gameState.gamePhase);
+                    const newIndex = getPhaseIndex(newPhase);
+                    const isNewRound = (gameState.gamePhase === 'mission' && newPhase === 'team-building');
+                    if (newIndex <= currentIndex && newPhase !== 'ended' && !isNewRound) {
+                        addLog('调试', `忽略phase-changed: 新阶段${newPhase}(${newIndex})<=当前阶段${gameState.gamePhase}(${currentIndex})`);
+                        isProcessing = false;
+                        return;
+                    }
+                    if (isNewRound) {
+                        addLog('调试', `✅ 检测到新一轮: ${gameState.gamePhase} -> ${newPhase}`);
+                    }
+
+                    gameState.gamePhase = newPhase;
+                    gameState.currentRound = data.currentRound;
+                    gameState.currentLeaderIndex = (data.currentLeaderIndex !== undefined) ? data.currentLeaderIndex : (data.leaderId !== undefined ? data.leaderId : gameState.currentLeaderIndex);
+
+                    addLog('调试', `状态更新: ${previousPhase} -> ${newPhase}`);
+
+                    // 根据新阶段播放对应的语音
+                    playPhaseVoice(data);
+
+                    updatePhaseUI(data);
+                    updateUI();
+                    
+                    // 强制更新按钮文字以确保UI正确反映新阶段
+                    const smartNextText = document.getElementById('smart-next-text');
+                    if (smartNextText) {
+                        if (newPhase === 'team-building') {
+                            smartNextText.textContent = '等待队长组队';
+                            addLog('调试', `✅ 按钮文字已强制更新为: 等待队长组队`);
+                        } else if (newPhase === 'voting') {
+                            smartNextText.textContent = '等待玩家投票';
+                        } else if (newPhase === 'mission') {
+                            smartNextText.textContent = '等待任务执行';
+                        } else if (newPhase === 'assassination') {
+                            smartNextText.textContent = '等待刺客选择';
+                        }
+                    }
+                    
+                    // 投票阶段显示投票进度区域
+                    if (newPhase === 'voting') {
+                        document.getElementById('vote-progress-item').style.display = 'block';
+                        document.getElementById('vote-progress').textContent = `0/${data.players?.length || 5}`;
+                    } else {
+                        document.getElementById('vote-progress-item').style.display = 'none';
+                    }
+                    
+                    addLog('阶段', `进入${getPhaseName(newPhase)}`);
+
+                    // 释放锁，允许下一次点击
+                    isProcessing = false;
+                    addLog('调试', `phase-changed后释放锁 isProcessing=${isProcessing}`);
+                } catch (error) {
+                    console.error('[VOICE-PHASE] Error handling phase-changed:', error);
+                    addLog('错误', `处理phase-changed出错: ${error.message}`);
+                    isProcessing = false;
+                }
+            });
+
+            // 队长通知
+            socket.on('you-are-leader', (data) => {
+                // 优先使用服务器发送的 currentLeaderName，而不是通过索引计算
+                const leaderName = data.currentLeaderName || (data.players ? (data.players[data.currentLeaderIndex]?.playerName || data.players[data.currentLeaderIndex]?.name) : `${(data.currentLeaderIndex || 0) + 1}号`);
+                const leaderNum = parseInt(leaderName) || ((data.currentLeaderIndex || 0) + 1);
+                document.getElementById('current-leader').textContent = leaderName;
+                addLog('队长', `本轮队长是 ${leaderName}`);
+                // 语音播报队长序号
+                playCommandAudio('CMD-042'); // 队长任命
+                setTimeout(() => {
+                    announceNumber(leaderNum);
+                }, 1000);
+            });
+
+            // 投票进度更新
+            socket.on('vote-updated', (data) => {
+                const votedCount = data.votedCount ?? data.voted ?? 0;
+                const totalCount = data.totalCount ?? data.total ?? 0;
+                document.getElementById('vote-progress').textContent = `${votedCount}/${totalCount}`;
+                document.getElementById('vote-progress-item').style.display = 'block';
+                addLog('投票', `投票进度: ${votedCount}/${totalCount}`);
+            });
+
+            // 投票完成
+            socket.on('vote-completed', (data) => {
+                document.getElementById('vote-progress-item').style.display = 'none';
+                if (data.passed) {
+                    addLog('投票', `投票通过！${data.approveCount}赞成 vs ${data.rejectCount}反对`);
+                } else {
+                    addLog('投票', `投票否决！${data.approveCount}赞成 vs ${data.rejectCount}反对`);
+                }
+            });
+
+            // 断开连接
+            socket.on('disconnect', () => {
+                addLog('系统', '与服务器断开连接');
+            });
+
+            // 重新连接后，如果之前有房间，尝试重新加入
+            socket.on('reconnect', () => {
+                addLog('系统', '已重新连接到服务器');
+                if (gameState.roomId) {
+                    addLog('系统', `尝试重新加入房间 ${gameState.roomId}...`);
+                    socket.emit('controller-reconnect', {
+                        roomId: gameState.roomId
+                    }, (response) => {
+                        if (response.success) {
+                            addLog('系统', '成功重新加入房间');
+                            // 更新游戏状态
+                            if (response.gameState) {
+                                gameState.currentRound = response.gameState.currentRound;
+                                gameState.currentLeaderIndex = response.gameState.currentLeaderIndex;
+                                gameState.gamePhase = response.gameState.gamePhase;
+                                updateUI();
+                            }
+                        } else {
+                            addLog('警告', `重新加入房间失败: ${response.message}`);
+                            addLog('系统', '房间可能已过期，请创建新房间');
+                            // 重置房间状态
+                            gameState.roomId = null;
+                            gameState.currentRound = 0;
+                            gameState.currentLeaderIndex = 0;
+                            gameState.gamePhase = 'waiting';
+                            document.getElementById('room-id').textContent = '--';
+                            document.getElementById('btn-create').disabled = false;
+                            document.getElementById('btn-decrease').disabled = false;
+                            document.getElementById('btn-increase').disabled = false;
+                            document.getElementById('smart-next-text').textContent = '等待玩家加入';
+                            updateUI();
+                        }
+                    });
+                }
+            });
+        }
+
+        // ==================== 智能推进 ====================
+        let isProcessing = false; // 防止重复点击
+        let processingTimeout = null; // 超时保护定时器
+
+        function smartNext() {
+            if (!gameState.roomId) {
+                addLog('系统', '请先创建房间');
+                return;
+            }
+
+            if (!socket) {
+                addLog('错误', 'Socket未连接');
+                return;
+            }
+
+            // 防止重复点击
+            if (isProcessing) {
+                addLog('系统', '正在处理中，请稍候...');
+                return;
+            }
+
+            // 玩家交互阶段：语音面板锁定，不能推进
+            const interactivePhases = ['team-building', 'voting', 'mission', 'assassination'];
+            if (interactivePhases.includes(gameState.gamePhase)) {
+                addLog('系统', '当前需要玩家操作，语音助手已锁定');
+                return;
+            }
+
+            isProcessing = true;
+            addLog('调试', `smartNext触发: 当前阶段=${gameState.gamePhase}, 轮次=${gameState.currentRound}, isProcessing=${isProcessing}`);
+
+            // 设置超时保护：10秒后如果还没收到响应，自动释放锁
+            if (processingTimeout) clearTimeout(processingTimeout);
+            processingTimeout = setTimeout(() => {
+                if (isProcessing) {
+                    addLog('警告', `⚠️ 超时！当前阶段=${gameState.gamePhase}，已等待10秒无响应，自动释放锁`);
+                    isProcessing = false;
+                    addLog('调试', `超时释放锁后 isProcessing=${isProcessing}`);
+                }
+            }, 10000);
+
+            addLog('调试', `进入switch前: gamePhase=${gameState.gamePhase}`);
+
+            // 根据当前阶段执行不同的逻辑（按 VOICE_PANEL_LOGIC.md 文档）
+            switch (gameState.gamePhase) {
+                case 'waiting':
+                    addLog('调试', '匹配到 waiting 分支');
+                    // 等待阶段 - 检查人数
+                    addLog('调试', `waiting阶段: currentPlayers=${gameState.currentPlayers}, playerCount=${gameState.playerCount}`);
+                    if (gameState.currentPlayers >= gameState.playerCount) {
+                        // 人数已满，发送 next-phase 到服务器
+                        addLog('系统', '所有玩家已准备，开始游戏');
+                        addLog('调试', '发送 next-phase 到服务器');
+                        socket.emit('next-phase', { roomId: gameState.roomId });
+                        // 锁会在 phase-changed 收到后释放
+                    } else {
+                        // 人数未满，提示等待
+                        addLog('系统', `等待玩家加入... (${gameState.currentPlayers}/${gameState.playerCount})`);
+                        announceRoomNumber(gameState.roomId);
+                        isProcessing = false;
+                    }
+                    break;
+
+                case 'opening':
+                    addLog('调试', '匹配到 opening 分支');
+                    // 开场阶段 - 播放欢迎词，然后发送 next-phase
+                    addLog('调试', 'opening阶段: 播放欢迎词并发送next-phase');
+                    playCommandAudio('CMD-003'); // 欢迎词
+                    addLog('游戏', '播放欢迎词');
+                    socket.emit('next-phase', { roomId: gameState.roomId });
+                    // 锁会在 phase-changed 收到后释放
+                    break;
+
+                case 'role-confirm':
+                    addLog('调试', '匹配到 role-confirm 分支');
+                    // 角色确认阶段 - 只发送next-phase到服务器，不播放语音（语音在controller-roles-assigned中已播放）
+                    addLog('调试', 'role-confirm阶段: 发送next-phase到服务器');
+                    addLog('游戏', '进入夜间阶段...');
+                    socket.emit('next-phase', { roomId: gameState.roomId });
+                    addLog('调试', '已发送next-phase，等待phase-changed响应');
+                    updateUI();
+                    // 锁会在 phase-changed 收到后释放
+                    break;
+
+                case 'night':
+                    // 夜间阶段 - 分步控制
+                    addLog('调试', `night阶段: nightStep=${nightStep}, nightSteps.length=${nightSteps.length}`);
+                    handleNightPhase();
+                    // 夜间步骤期间的锁由 handleNightPhase 管理
+                    // 最后一步完成后会发送 next-phase，锁由 phase-changed 释放
+                    break;
+
+                case 'day':
+                    // 白天阶段 - 播放天亮了，然后发送next-phase到服务器
+                    playCommandAudio('CMD-022'); // 天亮了
+                    addLog('游戏', '天亮了，进入组队阶段');
+                    // 发送next-phase到服务器，让服务器推进到team-building
+                    socket.emit('next-phase', { roomId: gameState.roomId }, (response) => {
+                        if (response && response.success) {
+                            addLog('系统', '已进入组队阶段');
+                        } else {
+                            addLog('错误', '进入组队阶段失败: ' + (response?.message || '未知错误'));
+                        }
+                        isProcessing = false;
+                    });
+                    break;
+
+                case 'team-building':
+                    // 组队阶段 - 尝试推进，服务器会检查队长是否已提交队伍
+                    socket.emit('next-phase', { roomId: gameState.roomId }, (response) => {
+                        if (response && !response.success) {
+                            // 队长尚未组织队伍，重复播报催促
+                            const leaderNum = (gameState.currentLeaderIndex % gameState.playerCount) + 1;
+                            playCommandAudio('CMD-042'); // 队长任命
+                            addLog('催促', `等待队长${leaderNum}号组织队伍...`);
+                            if (response.message) {
+                                addLog('系统', response.message);
+                            }
+                        }
+                        isProcessing = false;
+                    });
+                    break;
+
+                case 'discussion':
+                    // 讨论阶段 - 播放讨论开始，然后自动推进到投票
+                    playCommandAudio('CMD-048'); // 讨论时间
+                    addLog('游戏', '讨论阶段');
+                    setTimeout(() => {
+                        socket.emit('next-phase', { roomId: gameState.roomId }, (response) => {
+                            if (!response || !response.success) {
+                                addLog('错误', '进入投票阶段失败: ' + (response?.message || '未知错误'));
+                            }
+                            isProcessing = false;
+                        });
+                    }, 3000); // 3秒后自动推进
+                    updateUI();
+                    break;
+
+                case 'voting':
+                    // 投票阶段 - 尝试推进，服务器会检查所有玩家是否已投票
+                    socket.emit('next-phase', { roomId: gameState.roomId }, (response) => {
+                        if (response && !response.success) {
+                            // 还有玩家未投票，重复播报催促
+                            playCommandAudio('CMD-071'); // 投票开始
+                            addLog('催促', '等待所有玩家投票...');
+                            if (response.message) {
+                                addLog('系统', response.message);
+                            }
+                            if (response.pendingPlayers && response.pendingPlayers.length > 0) {
+                                addLog('等待', `未投票玩家: ${response.pendingPlayers.join(', ')}`);
+                            }
+                        }
+                        isProcessing = false;
+                    });
+                    break;
+
+                case 'mission':
+                    // 任务阶段 - 尝试推进，服务器会检查任务成员是否已行动
+                    socket.emit('next-phase', { roomId: gameState.roomId }, (response) => {
+                        if (response && !response.success) {
+                            // 还有任务成员未行动，重复播报催促
+                            playCommandAudio('CMD-091'); // 任务开始
+                            addLog('催促', '等待任务成员执行任务...');
+                            if (response.message) {
+                                addLog('系统', response.message);
+                            }
+                            if (response.pendingPlayers && response.pendingPlayers.length > 0) {
+                                addLog('等待', `未行动成员: ${response.pendingPlayers.join(', ')}`);
+                            }
+                        }
+                        isProcessing = false;
+                    });
+                    break;
+
+                case 'assassination':
+                    // 刺杀阶段 - 尝试推进，服务器会检查刺客是否已选择目标
+                    socket.emit('next-phase', { roomId: gameState.roomId }, (response) => {
+                        if (response && !response.success) {
+                            // 刺客尚未选择目标，重复播报催促
+                            handleAssassinationPhase();
+                            addLog('催促', '等待刺客选择目标...');
+                            if (response.message) {
+                                addLog('系统', response.message);
+                            }
+                        }
+                        isProcessing = false;
+                    });
+                    break;
+
+                case 'ended':
+                    // 游戏结束 - 重置
+                    addLog('游戏', '游戏结束');
+                    newGame();
+                    break;
+
+                default:
+                    addLog('系统', `未知阶段: ${gameState.gamePhase}`);
+            }
+        }
+
+        // 夜间阶段分步控制
+        // 按 NIGHT_VOICE_TEXTS_COMPLETE.md 文档实现（10步完整版）
+        const nightStepDescriptions = [
+            '夜间开始，闭眼准备',      // 1. CMD-N01
+            '坏人睁眼互认',            // 2. CMD-N02（奥伯伦闭眼）
+            '坏人闭眼，放下大拇指',    // 3. CMD-N03
+            '坏人竖起大拇指',          // 4. CMD-N04
+            '梅林睁眼观察',            // 5. CMD-N05
+            '收回大拇指，梅林闭眼',    // 6. CMD-N06
+            '梅林和莫甘娜竖起大拇指',  // 7. CMD-N08
+            '派西维尔睁眼观察',        // 8. CMD-N09
+            '收回大拇指，派西闭眼',    // 9. CMD-N10
+            '天亮了'                   // 10. CMD-N12
+        ];
+
+        function handleNightPhase() {
+            addLog('调试', `handleNightPhase: nightStep=${nightStep}, length=${nightSteps.length}`);
+            if (nightStep < nightSteps.length) {
+                // 播放当前步骤
+                const currentCmd = nightSteps[nightStep];
+                addLog('调试', `播放夜间指令: ${currentCmd} (${nightStep + 1}/${nightSteps.length})`);
+                playCommandAudio(currentCmd);
+                addLog('夜间', `步骤${nightStep + 1}: ${nightStepDescriptions[nightStep]}`);
+
+                nightStep++;
+
+                if (nightStep >= nightSteps.length) {
+                    // 夜间流程完成
+                    nightStep = 0;
+                    addLog('系统', '夜间结束，进入白天');
+                    addLog('调试', '夜间流程完成，发送next-phase到服务器');
+                    updateSmartButtonText();
+                    // 夜间流程完成，发送 next-phase 到服务器推进到 day
+                    socket.emit('next-phase', { roomId: gameState.roomId });
+                    // 锁会在 phase-changed 收到后释放
+                } else {
+                    updateSmartButtonText();
+                    addLog('调试', `夜间步骤完成，等待用户点击下一步`);
+                    // 每一步完成后立即释放锁，允许用户点击下一步
+                    isProcessing = false;
+                }
+            } else {
+                addLog('调试', 'nightStep已超出范围，重置为0');
+                nightStep = 0;
+                isProcessing = false;
+            }
+        }
+
+        // 刺杀阶段分步控制
+        function handleAssassinationPhase() {
+            if (assassinationStep === 0) {
+                // 第一次点击：播放 CMD-112
+                assassinationStep = 1;
+                playCommandAudio(assassinationSteps[0]); // CMD-112
+                document.getElementById('smart-next-text').textContent = '刺杀选择';
+                addLog('刺杀', '刺客请选择目标');
+            } else if (assassinationStep < assassinationSteps.length) {
+                // 继续下一步
+                playCommandAudio(assassinationSteps[assassinationStep]);
+                addLog('刺杀', `刺杀步骤${assassinationStep + 1}`);
+                assassinationStep++;
+
+                if (assassinationStep >= assassinationSteps.length) {
+                    assassinationStep = 0;
+                    document.getElementById('smart-next-text').textContent = '游戏结束';
+                } else {
+                    document.getElementById('smart-next-text').textContent = `刺杀步骤${assassinationStep}`;
+                }
+            }
+        }
+
+        // ==================== 控制功能 ====================
+        function mute() {
+            gameState.isAudioMuted = !gameState.isAudioMuted;
+            const btn = document.getElementById('btn-mute');
+            btn.innerHTML = gameState.isAudioMuted ? 
+                '<span>🔊</span><span>取消静音</span>' : 
+                '<span>🔇</span><span>静音</span>';
+            addLog('音频', gameState.isAudioMuted ? '已静音' : '已取消静音');
+        }
+
+        function previousPhase() {
+            if (!socket || !gameState.roomId) {
+                addLog('错误', '未连接服务器');
+                return;
+            }
+
+            const phases = ['waiting', 'opening', 'role-confirm', 'night', 'day', 'team-building', 'discussion', 'voting', 'mission', 'assassination', 'ended'];
+            const currentIndex = phases.indexOf(gameState.gamePhase);
+
+            if (currentIndex <= 0) {
+                addLog('系统', '已经在第一阶段，无法返回');
+                return;
+            }
+
+            // 夜间阶段特殊处理：返回上一步或上一阶段
+            if (gameState.gamePhase === 'night' && nightStep > 0) {
+                nightStep--;
+                addLog('系统', `返回夜间步骤: ${nightStepDescriptions[nightStep]}`);
+                updateSmartButtonText();
+                // 重新播放当前步骤语音
+                playCommandAudio(nightSteps[nightStep]);
+                return;
+            }
+
+            const previousPhase = phases[currentIndex - 1];
+            addLog('系统', `返回上一阶段: ${getPhaseName(previousPhase)}`);
+
+            // 发送返回上一阶段请求到服务器
+            socket.emit('previous-phase', { roomId: gameState.roomId }, (response) => {
+                if (response && response.success) {
+                    addLog('系统', '已返回上一阶段');
+                } else {
+                    addLog('错误', response?.message || '返回上一阶段失败');
+                }
+            });
+        }
+
+        // 模态框回调函数
+        let modalCallback = null;
+
+        function showModal(title, message, callback, confirmText = '确定') {
+            modalCallback = callback;
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('modalConfirmBtn').textContent = confirmText;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').classList.remove('active');
+            modalCallback = null;
+        }
+
+        function confirmModalAction() {
+            if (modalCallback) {
+                modalCallback();
+            }
+            closeModal();
+        }
+
+        // 长按重置相关变量
+        let newGameLongPressTimer = null;
+        let isNewGameLongPressing = false;
+
+        function startNewGameLongPress(event) {
+            console.log('[DEBUG] startNewGameLongPress 被调用');
+            if (event) {
+                event.preventDefault();
+            }
+
+            const btn = document.getElementById('btn-new');
+            const progress = document.getElementById('long-press-progress');
+            const btnText = document.getElementById('btn-new-text');
+
+            isNewGameLongPressing = true;
+            btn.classList.add('long-pressing');
+            btnText.textContent = '继续按住...';
+            console.log('[DEBUG] 开始计时，3秒后重置');
+
+            // 3秒后执行重置
+            newGameLongPressTimer = setTimeout(() => {
+                console.log('[DEBUG] 3秒到达，执行重置');
+                isNewGameLongPressing = false;
+                btn.classList.remove('long-pressing');
+                btnText.textContent = '长按3秒重置';
+                performNewGameReset();
+            }, 3000);
+        }
+
+        function cancelNewGameLongPress() {
+            if (!isNewGameLongPressing) return;
+
+            const btn = document.getElementById('btn-new');
+            const btnText = document.getElementById('btn-new-text');
+
+            isNewGameLongPressing = false;
+            clearTimeout(newGameLongPressTimer);
+            btn.classList.remove('long-pressing');
+            btnText.textContent = '长按3秒重置';
+        }
+
+        // 处理触摸移动，如果手指移出按钮区域则取消长按
+        function handleTouchMove(event) {
+            if (!isNewGameLongPressing) return;
+
+            const btn = document.getElementById('btn-new');
+            const touch = event.touches[0];
+            const rect = btn.getBoundingClientRect();
+
+            // 检查手指是否在按钮区域内
+            if (touch.clientX < rect.left || touch.clientX > rect.right ||
+                touch.clientY < rect.top || touch.clientY > rect.bottom) {
+                console.log('[DEBUG] 手指移出按钮区域，取消长按');
+                cancelNewGameLongPress();
+            }
+        }
+
+        // 执行新开一局重置
+        function performNewGameReset() {
+            console.log('[DEBUG] performNewGameReset 开始执行');
+            addLog('系统', '正在新开一局，清理当前房间数据...');
+
+            // 先播放重置游戏语音（确保在 socket 断开之前播放）
+            playCommandAudio('CMD-013');
+
+            // 清理 localStorage 中的房间数据
+            localStorage.removeItem('voicePanel_roomId');
+            localStorage.removeItem('voicePanel_playerCount');
+
+            // 断开 socket 连接
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+
+            // 重置游戏状态
+            gameState.roomId = null;
+            gameState.phase = 'waiting';
+            gameState.step = 0;
+            gameState.players = [];
+            gameState.currentTeam = [];
+            gameState.missionResults = [];
+            gameState.votes = {};
+
+            // 重置标记
+            hasCreatedRoom = false;
+            isUserInitiatedCreate = false;
+            hasSentCreateRequest = false; // ⬅️ 新增：重置创建请求标记
+
+            addLog('系统', '已重置，请创建新房间开始游戏');
+            updateUI();
+
+            // 刷新页面以完全重置状态（清除 URL 参数）
+            setTimeout(() => {
+                // 清除 URL 参数并刷新页面
+                const baseUrl = window.location.origin + window.location.pathname;
+                window.location.href = baseUrl;
+            }, 2000);
+        }
+
+        function wakeUp() {
+            addLog('助手', '语音助手已唤醒');
+            playText('语音助手已就绪');
+        }
+
+        function skipAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            audioQueue = [];
+            addLog('音频', '已跳过当前播报');
+        }
+
+        function repeatAudio() {
+            addLog('音频', '重复当前播报');
+        }
+
+        // ==================== 阶段语音播放 ====================
+        // 按文档 VOICE_PANEL_OPERATION_GUIDE.md 实现
+
+        // 夜间阶段步骤追踪
+        // 按 NIGHT_VOICE_TEXTS_COMPLETE.md 文档实现（10步完整版）
+        // 5-7人局: N01 → N02 → N03 → N04 → N05 → N06 → N08 → N09 → N10 → N12
+        // 8-10人局: N01 → N02 → N03 → N04-M → N05 → N06 → N08 → N09 → N10 → N12
+        let nightStep = 0;
+        const nightSteps = [
+            'CMD-N01',   // 1. 夜间开始，闭眼准备
+            'CMD-N02',   // 2. 坏人睁眼互认（奥伯伦闭眼）
+            'CMD-N03',   // 3. 坏人闭眼，放下大拇指
+            'CMD-N04',   // 4. 坏人竖起大拇指（5-7人局）
+            'CMD-N05',   // 5. 梅林睁眼观察
+            'CMD-N06',   // 6. 收回大拇指，梅林闭眼
+            'CMD-N08',   // 7. 梅林和莫甘娜竖起大拇指
+            'CMD-N09',   // 8. 派西维尔睁眼观察
+            'CMD-N10',   // 9. 收回大拇指，派西维尔闭眼
+            'CMD-N12'    // 10. 天亮了
+        ];
+
+        // 刺杀阶段步骤追踪
+        let assassinationStep = 0;
+        const assassinationSteps = ['CMD-112', 'CMD-114', 'CMD-115', 'CMD-116'];
+
+        function playPhaseVoice(data) {
+            if (gameState.isAudioMuted) return;
+
+            const phase = data.gamePhase;
+            const currentRound = data.currentRound || gameState.currentRound || 1;
+
+            // 根据阶段播放对应的语音（按文档 VOICE_PANEL_OPERATION_GUIDE.md）
+            switch (phase) {
+                case 'waiting':
+                    // 等待阶段 - 不自动播放语音
+                    break;
+
+                case 'role-confirm':
+                    // 角色确认阶段 - 不自动播放语音（由controller-roles-assigned事件处理）
+                    // 防止与controller-roles-assigned中的播放重复
+                    addLog('调试', 'playPhaseVoice: role-confirm阶段跳过自动播放（由controller-roles-assigned处理）');
+                    break;
+
+                case 'night':
+                    // 夜间阶段 - 分步控制，由 handleNightPhase 处理
+                    break;
+
+                case 'day':
+                    // 白天阶段 - 由 smartNext 处理播放 CMD-022
+                    break;
+
+                case 'team-building':
+                    // 组队阶段 - 播放队长任命
+                    playCommandAudio('CMD-042');
+                    break;
+
+                case 'voting':
+                    // 投票阶段 - 播放投票开始
+                    playCommandAudio('CMD-071');
+                    break;
+
+                case 'mission':
+                    // 任务阶段 - 根据轮次播放不同语音
+                    if (currentRound === 4 && gameState.playerCount >= 7) {
+                        // 第四轮特殊规则（仅7人及以上需要2个失败）
+                        playCommandAudio('CMD-101');
+                    } else if (currentRound === 5) {
+                        // 最终轮
+                        playCommandAudio('CMD-105');
+                    } else {
+                        // 普通轮
+                        playCommandAudio('CMD-091');
+                    }
+                    break;
+
+                case 'assassination':
+                    // 刺杀阶段 - 播放进入刺杀
+                    playCommandAudio('CMD-111');
+                    assassinationStep = 0; // 重置刺杀步骤
+                    break;
+
+                case 'ended':
+                    // 游戏结束 - 根据胜负播放对应语音
+                    if (data.winner === 'good') {
+                        playCommandAudio('CMD-126');
+                    } else if (data.winner === 'evil') {
+                        playCommandAudio('CMD-127');
+                    }
+                    break;
+
+                default:
+                    console.log('未知阶段:', phase);
+            }
+        }
+
+        // 夜间分步推进
+        function nextNightStep() {
+            nightStep++;
+            if (nightStep >= nightSteps.length) {
+                nightStep = 0;
+                return false; // 夜间流程结束
+            }
+            playCommandAudio(nightSteps[nightStep]);
+            return true;
+        }
+
+        // 刺杀分步推进
+        function nextAssassinationStep() {
+            assassinationStep++;
+            if (assassinationStep >= assassinationSteps.length) {
+                assassinationStep = 0;
+                return false; // 刺杀流程结束
+            }
+            playCommandAudio(assassinationSteps[assassinationStep]);
+            return true;
+        }
+
+        // 播放投票结果
+        function playVoteResult(passed) {
+            if (passed) {
+                playCommandAudio('CMD-074'); // 投票通过
+            } else {
+                playCommandAudio('CMD-075'); // 投票否决
+            }
+        }
+
+        // 播放任务结果
+        function playMissionResult(success) {
+            if (success) {
+                playCommandAudio('CMD-094'); // 任务成功
+            } else {
+                playCommandAudio('CMD-095'); // 任务失败
+            }
+        }
+
+        // 播放刺杀结果
+        function playAssassinationResult(success) {
+            if (success) {
+                playCommandAudio('CMD-116'); // 刺杀成功
+            } else {
+                playCommandAudio('CMD-117'); // 刺杀失败
+            }
+        }
+
+        // 播放讨论环节
+        function playDiscussion() {
+            playCommandAudio('CMD-048'); // 讨论时间
+        }
+
+        function playDiscussionEnd() {
+            playCommandAudio('CMD-052'); // 讨论结束
+        }
+
+        // ==================== UI更新 ====================
+        function updateUI() {
+            updatePlayerStatus();
+            updateMissionTrack();
+            updateSmartButtonText();
+        }
+
+        function updateSmartButtonText() {
+            // 夜间阶段特殊处理：显示当前步骤
+            if (gameState.gamePhase === 'night') {
+                if (nightStep >= nightSteps.length) {
+                    document.getElementById('smart-next-text').textContent = '天亮了';
+                } else if (nightStep === 0) {
+                    document.getElementById('smart-next-text').textContent = '开始夜间';
+                } else {
+                    document.getElementById('smart-next-text').textContent = `下一步(${nightStepDescriptions[nightStep]})`;
+                }
+                return;
+            }
+
+            // 玩家交互阶段：语音面板锁定，显示"等待玩家操作"
+            const interactivePhases = ['team-building', 'voting', 'mission', 'assassination'];
+            if (interactivePhases.includes(gameState.gamePhase)) {
+                const waitingTexts = {
+                    'team-building': '等待队长组队',
+                    'voting': '等待玩家投票',
+                    'mission': '等待任务执行',
+                    'assassination': '等待刺客选择'
+                };
+                document.getElementById('smart-next-text').textContent = waitingTexts[gameState.gamePhase] || '等待玩家操作';
+                return;
+            }
+
+            // 等待阶段：玩家已满时显示"开始游戏"
+            if (gameState.gamePhase === 'waiting' && gameState.currentPlayers >= gameState.playerCount) {
+                document.getElementById('smart-next-text').textContent = '开始游戏';
+                return;
+            }
+
+            const texts = {
+                'waiting': '等待玩家加入',
+                'opening': '开始游戏',
+                'role-confirm': '进入夜间',
+                'day': '天亮了',
+                'discussion': '讨论开始',
+                'ended': '游戏结束'
+            };
+            const text = texts[gameState.gamePhase] || '下一步';
+            document.getElementById('smart-next-text').textContent = text;
+        }
+
+        function announceRoomNumber(roomId) {
+            addLog('语音', `播报房间号: ${roomId}`);
+            // 使用 TTS 播报房间号
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(`房间号${roomId}，请玩家加入`);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function updatePlayerStatus() {
+            document.getElementById('player-status').textContent = 
+                `${gameState.currentPlayers}/${gameState.playerCount}人`;
+        }
+
+        function updateMissionTrack() {
+            const missionConfig = {
+                5: [2, 3, 2, 3, 3],
+                6: [2, 3, 4, 3, 4],
+                7: [2, 3, 3, 4, 4],
+                8: [3, 4, 4, 5, 5],
+                9: [3, 4, 4, 5, 5],
+                10: [3, 4, 5, 5, 5]
+            };
+            
+            const config = missionConfig[gameState.playerCount] || missionConfig[5];
+            const dots = document.querySelectorAll('.mission-dot');
+            
+            dots.forEach((dot, index) => {
+                const size = dot.querySelector('.size');
+                if (size) size.textContent = config[index] + '人';
+            });
+        }
+
+        function updatePhaseUI(data) {
+            const currentRound = data.currentRound || gameState.currentRound || 1;
+            document.getElementById('current-round').textContent = `第${currentRound}轮`;
+
+            // 优先使用服务器发送的 currentLeaderName，而不是通过索引计算
+            if (data.currentLeaderName) {
+                document.getElementById('current-leader').textContent = data.currentLeaderName;
+            } else if (data.currentLeader) {
+                document.getElementById('current-leader').textContent = data.currentLeader;
+            } else if (data.leader) {
+                document.getElementById('current-leader').textContent = data.leader;
+            } else if (data.currentLeaderIndex !== undefined && data.players && data.players[data.currentLeaderIndex]) {
+                const leaderName = data.players[data.currentLeaderIndex].playerName || data.players[data.currentLeaderIndex].name;
+                document.getElementById('current-leader').textContent = leaderName || '未知';
+            }
+
+            // 更新任务进度显示
+            const dots = document.querySelectorAll('.mission-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.remove('current', 'success', 'fail');
+                if (gameState.missionResults[index]) {
+                    dot.classList.add(gameState.missionResults[index]);
+                }
+                if (data.currentRound === index + 1 && data.gamePhase !== 'ended') {
+                    dot.classList.add('current');
+                }
+            });
+
+            // 更新按钮文字
+            const phaseTexts = {
+                'waiting': '等待玩家加入',
+                'night': '推进到白天',
+                'day': '开始组队',
+                'team-building': '确认队伍',
+                'voting': '查看投票结果',
+                'mission': '执行任务',
+                'assassination': '刺客行动',
+                'ended': '游戏结束'
+            };
+            document.getElementById('smart-next-text').textContent = 
+                phaseTexts[data.gamePhase] || '下一步';
+
+            updateGamePhase(data.gamePhase, getPhaseName(data.gamePhase));
+        }
+
+        function updateGamePhase(phase, name) {
+            const list = document.getElementById('feature-list');
+            const phases = [
+                { id: 'waiting', name: '等待玩家加入', icon: '⏳' },
+                { id: 'night', name: '夜间阶段', icon: '🌙' },
+                { id: 'day', name: '白天讨论', icon: '☀️' },
+                { id: 'team-building', name: '组队投票', icon: '👥' },
+                { id: 'mission', name: '任务执行', icon: '🎯' }
+            ];
+
+            list.innerHTML = phases.map(p => `
+                <div class="feature-item ${p.id === phase ? 'active' : ''} ${phases.indexOf(p) < phases.findIndex(x => x.id === phase) ? 'completed' : ''}">
+                    <span class="icon">${p.icon}</span>
+                    <span class="name">${p.name}</span>
+                    <span class="status">${p.id === phase ? '进行中' : (phases.indexOf(p) < phases.findIndex(x => x.id === phase) ? '已完成' : '待开始')}</span>
+                </div>
+            `).join('');
+        }
+
+        // ==================== 辅助函数 ====================
+        function getLeaderName(index) {
+            const names = ['1号', '2号', '3号', '4号', '5号', '6号', '7号', '8号', '9号', '10号'];
+            return names[index] || '--';
+        }
+
+        function getPhaseName(phase) {
+            const names = {
+                'waiting': '等待中',
+                'opening': '开场阶段',
+                'role-confirm': '角色确认',
+                'night': '夜间阶段',
+                'day': '白天阶段',
+                'team-building': '组队阶段',
+                'discussion': '讨论阶段',
+                'voting': '投票阶段',
+                'mission': '任务阶段',
+                'assassination': '刺杀阶段',
+                'ended': '游戏结束'
+            };
+            return names[phase] || phase;
+        }
+
+        // 获取阶段索引（用于比较阶段顺序）
+        function getPhaseIndex(phase) {
+            const phases = ['waiting', 'opening', 'role-confirm', 'night', 'day', 'team-building', 'discussion', 'voting', 'mission', 'assassination', 'ended'];
+            return phases.indexOf(phase);
+        }
+
+        function addLog(type, message) {
+            const container = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+            entry.innerHTML = `<span class="timestamp">${time}</span><span>[${type}] ${message}</span>`;
+            container.insertBefore(entry, container.firstChild);
+            
+            // 限制日志数量
+            while (container.children.length > 50) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('log-container').innerHTML = '';
+            addLog('系统', '日志已清空');
+        }
+
+        // 停止所有音频播放
+        function stopAllAudio() {
+            // 停止当前播放的音频
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+            // 停止语音合成
+            window.speechSynthesis.cancel();
+        }
+
+        // 播放预配置语音
+        function playCommandAudio(commandId) {
+            if (gameState.isAudioMuted) {
+                addLog('调试', `播放指令${commandId}被静音跳过`);
+                return;
+            }
+
+            addLog('调试', `playCommandAudio: ${commandId}`);
+
+            // 如果选择设备端，转发到设备播放
+            if (audioOutputDevice === 'device' && socket && socket.connected) {
+                socket.emit('play-audio-command', { commandId: commandId });
+                addLog('系统', `已发送到设备端: ${commandId}`);
+                return;
+            }
+
+            // 否则在网页端播放
+            // 停止之前的播放
+            stopAllAudio();
+            
+            // 检查是否是数字
+            if (commandId.startsWith('NUM-')) {
+                playNumber(commandId);
+                return;
+            }
+            
+            // 检查是否是片段
+            if (commandId.startsWith('SEG-')) {
+                playSegment(commandId);
+                return;
+            }
+            
+            const voice = voiceMap[commandId];
+            if (!voice) {
+                console.warn('未找到语音:', commandId);
+                return;
+            }
+            
+            const audioPath = `${audioBasePath}/${voice.folder}/${commandId}.mp3`;
+            const audio = new Audio(audioPath);
+            currentAudio = audio;
+            
+            audio.onended = () => {
+                currentAudio = null;
+            };
+            
+            audio.onerror = () => {
+                console.warn('音频加载失败:', audioPath);
+                currentAudio = null;
+                playText(voice.text);
+            };
+            
+            audio.play().catch(err => {
+                console.warn('播放失败:', err);
+                currentAudio = null;
+                playText(voice.text);
+            });
+        }
+
+        // 播报数字序号
+        function announceNumber(num) {
+            if (gameState.isAudioMuted) return;
+            addLog('语音', `播报序号: ${num}号`);
+            const numVoiceMap = { 1: 'NUM-1', 2: 'NUM-2', 3: 'NUM-3', 4: 'NUM-4', 5: 'NUM-5', 6: 'NUM-6', 7: 'NUM-7', 8: 'NUM-8', 9: 'NUM-9', 10: 'NUM-10' };
+            const voiceId = numVoiceMap[num];
+            if (voiceId) {
+                playNumberSequence(['SEG-NUMBER', voiceId]);
+            } else {
+                playText(`${num}号`);
+            }
+        }
+
+        // 播放数字
+        function playNumber(numId) {
+            if (gameState.isAudioMuted) return;
+            
+            // 如果选择设备端，转发到设备播放
+            if (audioOutputDevice === 'device' && socket && socket.connected) {
+                socket.emit('play-audio-command', { commandId: numId });
+                addLog('系统', `数字音频已发送到设备端: ${numId}`);
+                return;
+            }
+            
+            stopAllAudio();
+            
+            const audioPath = `${audioBasePath}/numbers/${numId}.mp3`;
+            const audio = new Audio(audioPath);
+            currentAudio = audio;
+            
+            audio.onended = () => {
+                currentAudio = null;
+            };
+            
+            audio.onerror = () => {
+                console.warn('数字音频加载失败:', audioPath);
+                currentAudio = null;
+                const num = numId.replace('NUM-', '');
+                playText(num);
+            };
+            
+            audio.play().catch(err => {
+                currentAudio = null;
+                const num = numId.replace('NUM-', '');
+                playText(num);
+            });
+        }
+
+        // 播放片段
+        function playSegment(segId) {
+            if (gameState.isAudioMuted) return;
+            
+            // 如果选择设备端，转发到设备播放
+            if (audioOutputDevice === 'device' && socket && socket.connected) {
+                socket.emit('play-audio-command', { commandId: segId });
+                addLog('系统', `片段音频已发送到设备端: ${segId}`);
+                return;
+            }
+            
+            stopAllAudio();
+            
+            const audioPath = `${audioBasePath}/segments/${segId}.mp3`;
+            const audio = new Audio(audioPath);
+            currentAudio = audio;
+            
+            audio.onended = () => {
+                currentAudio = null;
+            };
+            
+            audio.onerror = () => {
+                console.warn('片段音频加载失败:', audioPath);
+                currentAudio = null;
+                const textMap = {
+                    'SEG-ROOM': '房间',
+                    'SEG-NUMBER': '号',
+                    'SEG-PERSON': '人',
+                    'SEG-SET-PERSON': '人局'
+                };
+                playText(textMap[segId] || '');
+            };
+            
+            audio.play().catch(err => {
+                currentAudio = null;
+                const textMap = {
+                    'SEG-ROOM': '房间',
+                    'SEG-NUMBER': '号',
+                    'SEG-PERSON': '人',
+                    'SEG-SET-PERSON': '人局'
+                };
+                playText(textMap[segId] || '');
+            });
+        }
+
+        function playText(text) {
+            if (gameState.isAudioMuted) return;
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 1;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // 复制房间链接
+        function copyRoomLink(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            if (!gameState.roomId) {
+                addLog('系统', '请先创建房间');
+                return;
+            }
+
+            const playerUrl = `${window.location.origin}/player-modular.html?roomId=${gameState.roomId}`;
+
+            // 使用现代的 Clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(playerUrl).then(() => {
+                    showCopySuccess(playerUrl);
+                }).catch(err => {
+                    console.warn('Clipboard API 失败，尝试备用方法:', err);
+                    fallbackCopyTextToClipboard(playerUrl);
+                });
+            } else {
+                // 备用复制方法
+                fallbackCopyTextToClipboard(playerUrl);
+            }
+        }
+
+        // 备用复制方法（兼容旧浏览器）
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showCopySuccess(text);
+                } else {
+                    addLog('错误', '复制失败，请手动复制');
+                }
+            } catch (err) {
+                console.error('复制失败:', err);
+                addLog('错误', '复制失败，请手动复制');
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        // 显示复制成功
+        function showCopySuccess(url) {
+            // 显示复制成功状态
+            const btn = document.querySelector('.btn-copy');
+            if (btn) {
+                btn.classList.add('copied');
+                btn.textContent = '✓';
+
+                // 2秒后恢复
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.textContent = '📋';
+                }, 2000);
+            }
+
+            addLog('系统', `房间链接已复制: ${url}`);
+        }
+    </script>
+</body>
+</html>

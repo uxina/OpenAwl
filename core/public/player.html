@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>阿瓦隆游戏 - 玩家端</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:not(.action-buttons button) {
+            width: 100%;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .role-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .role-name {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .role-side {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        .vision-list {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .vision-item {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .phase-indicator {
+            text-align: center;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-weight: 500;
+            color: #1976d2;
+        }
+        #votingSection, #missionSection {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        /* 投票和任务按钮容器 - 左右布局 */
+        .action-buttons,
+        .voting-buttons,
+        .mission-buttons {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            gap: 20px !important;
+            margin-top: 20px !important;
+            padding: 10px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* 投票和任务按钮 */
+        .action-buttons button,
+        .voting-buttons button,
+        .mission-buttons button {
+            width: calc(50% - 10px) !important;
+            max-width: calc(50% - 10px) !important;
+            flex: 0 0 calc(50% - 10px) !important;
+            min-height: 50px !important;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: 2px solid #0d7a6e;
+            box-shadow: 0 4px 8px rgba(17, 153, 142, 0.3);
+        }
+        .btn-success:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(17, 153, 142, 0.3);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            border: 2px solid #c41e3a;
+            box-shadow: 0 4px 8px rgba(235, 51, 73, 0.3);
+        }
+        .btn-danger:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(235, 51, 73, 0.3);
+        }
+        /* 队伍选择样式 */
+        .team-selection-info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #1976d2;
+            font-weight: 500;
+        }
+        .player-selection-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .player-select-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .player-select-item:hover {
+            background: #e3f2fd;
+        }
+        .player-select-item.selected {
+            background: #e3f2fd;
+            border-color: #667eea;
+        }
+        .player-select-item .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .player-select-item.selected .checkbox {
+            background: #667eea;
+            border-color: #667eea;
+        }
+        .player-select-item.selected .checkbox::after {
+            content: '✓';
+            color: white;
+            font-size: 14px;
+        }
+        .player-select-item .player-name {
+            flex: 1;
+            font-weight: 500;
+        }
+        .player-select-item .leader-badge {
+            background: #ffd700;
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        #submitTeamBtn {
+            width: 100%;
+            margin-top: 10px;
+        }
+        #submitTeamBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .hidden { display: none; }
+        .error { color: #e74c3c; text-align: center; margin-top: 10px; }
+        .success { color: #27ae60; text-align: center; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 加入房间界面 -->
+        <div id="joinScreen">
+            <h1>🎭 加入游戏</h1>
+            <div class="form-group">
+                <label for="roomId">房间号</label>
+                <input type="text" id="roomId" placeholder="请输入4位房间号" maxlength="4">
+            </div>
+            <div class="form-group">
+                <label for="playerName">玩家名称</label>
+                <input type="text" id="playerName" placeholder="请输入你的名字">
+            </div>
+            <button id="joinBtn">加入房间</button>
+            <div id="message"></div>
+        </div>
+
+        <!-- 等待界面 -->
+        <div id="waitingScreen" class="hidden">
+            <h1>⏳ 等待中</h1>
+            <div class="phase-indicator" id="waitingMessage">
+                已加入房间，等待游戏开始...
+            </div>
+            <div id="waitingPlayers"></div>
+        </div>
+
+        <!-- 角色界面 -->
+        <div id="roleScreen" class="hidden">
+            <h1>🎭 你的身份</h1>
+            <div class="role-card">
+                <div class="role-name" id="roleName">-</div>
+                <div class="role-side" id="roleSide">-</div>
+            </div>
+            <div class="vision-list hidden" id="visionList">
+                <h3>👁️ 你的视野</h3>
+                <div id="visionContent"></div>
+            </div>
+            <button id="confirmRoleBtn">确认身份</button>
+        </div>
+
+        <!-- 游戏界面 -->
+        <div id="gameScreen" class="hidden">
+            <h1>🎮 游戏进行中</h1>
+            <div class="phase-indicator" id="gamePhase">-</div>
+            
+            <div id="teamSelection" class="hidden">
+                <h3>组建队伍</h3>
+                <div id="teamPlayers"></div>
+                <button id="submitTeamBtn">确认队伍</button>
+            </div>
+
+            <div id="votingSection" class="hidden">
+                <h3>投票表决</h3>
+                <p>是否同意这个队伍？</p>
+                <div class="action-buttons voting-buttons">
+                    <button class="btn-success" id="voteApprove">✅ 同意</button>
+                    <button class="btn-danger" id="voteReject">❌ 反对</button>
+                </div>
+            </div>
+
+            <div id="missionSection" class="hidden">
+                <h3>任务执行</h3>
+                <p>请选择任务结果：</p>
+                <div class="action-buttons mission-buttons">
+                    <button class="btn-success" id="missionSuccess">✅ 成功</button>
+                    <button class="btn-danger" id="missionFail">❌ 失败</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 游戏结束 -->
+        <div id="endScreen" class="hidden">
+            <h1>🏆 游戏结束</h1>
+            <div class="phase-indicator" id="winnerText">-</div>
+            <button onclick="location.reload()">再来一局</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js?v=2"></script>
+    <script>
+        const socket = io();
+        let currentRoomId = null;
+        let playerId = null;
+        let myRole = null;
+        let selectedTeamPlayers = new Set();
+        let currentPlayers = [];
+        let requiredTeamSize = 2;
+        let isCurrentLeader = false;
+        let hasVoted = false; // 跟踪是否已投票
+
+        // 获取URL参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlRoomId = urlParams.get('roomId');
+        if (urlRoomId) {
+            document.getElementById('roomId').value = urlRoomId;
+        }
+
+        // 加入房间
+        document.getElementById('joinBtn').addEventListener('click', () => {
+            const roomId = document.getElementById('roomId').value.trim();
+            const playerName = document.getElementById('playerName').value.trim();
+
+            if (!roomId || roomId.length !== 4) {
+                showMessage('请输入4位房间号', 'error');
+                return;
+            }
+            if (!playerName) {
+                showMessage('请输入玩家名称', 'error');
+                return;
+            }
+
+            socket.emit('player-join', { roomId, playerName }, (response) => {
+                if (response.success) {
+                    currentRoomId = response.roomId;
+                    playerId = response.playerId;
+                    showScreen('waitingScreen');
+                    showMessage('加入成功！', 'success');
+                } else {
+                    showMessage(response.message, 'error');
+                }
+            });
+        });
+
+        // 确认身份
+        document.getElementById('confirmRoleBtn').addEventListener('click', () => {
+            socket.emit('confirm-role', { roomId: currentRoomId, playerId }, (response) => {
+                if (response.success) {
+                    showScreen('gameScreen');
+                }
+            });
+        });
+
+        // 组建队伍 - 选择玩家
+        function renderTeamSelection(players, leaderId, teamSize) {
+            currentPlayers = players;
+            requiredTeamSize = teamSize;
+            selectedTeamPlayers.clear();
+            
+            const container = document.getElementById('teamPlayers');
+            container.innerHTML = `
+                <div class="team-selection-info">
+                    请选择 ${teamSize} 名队员（不包括自己）
+                    <br>已选择: <span id="selectedCount">0</span>/${teamSize}
+                </div>
+                <div class="player-selection-list" id="playerSelectionList"></div>
+            `;
+            
+            const listContainer = document.getElementById('playerSelectionList');
+            
+            players.forEach(p => {
+                // 队长自己不显示在选择列表中
+                if (p.id === playerId) return;
+                
+                const item = document.createElement('div');
+                item.className = 'player-select-item';
+                item.dataset.playerId = p.id;
+                item.innerHTML = `
+                    <div class="checkbox"></div>
+                    <span class="player-name">${p.name}</span>
+                    ${p.id === leaderId ? '<span class="leader-badge">队长</span>' : ''}
+                `;
+                
+                item.addEventListener('click', () => togglePlayerSelection(p.id, item));
+                listContainer.appendChild(item);
+            });
+            
+            updateSubmitButton();
+        }
+        
+        function togglePlayerSelection(playerId, element) {
+            if (selectedTeamPlayers.has(playerId)) {
+                selectedTeamPlayers.delete(playerId);
+                element.classList.remove('selected');
+            } else {
+                if (selectedTeamPlayers.size >= requiredTeamSize) {
+                    showMessage(`只能选择 ${requiredTeamSize} 名队员`, 'error');
+                    return;
+                }
+                selectedTeamPlayers.add(playerId);
+                element.classList.add('selected');
+            }
+            
+            document.getElementById('selectedCount').textContent = selectedTeamPlayers.size;
+            updateSubmitButton();
+        }
+        
+        function updateSubmitButton() {
+            const btn = document.getElementById('submitTeamBtn');
+            btn.disabled = selectedTeamPlayers.size !== requiredTeamSize;
+            btn.textContent = selectedTeamPlayers.size === requiredTeamSize 
+                ? '确认队伍' 
+                : `需选择${requiredTeamSize}人（当前${selectedTeamPlayers.size}人）`;
+        }
+        
+        // 提交队伍
+        document.getElementById('submitTeamBtn').addEventListener('click', () => {
+            if (selectedTeamPlayers.size !== requiredTeamSize) {
+                showMessage(`需要选择 ${requiredTeamSize} 名队员`, 'error');
+                return;
+            }
+            
+            const teamIds = Array.from(selectedTeamPlayers);
+            socket.emit('build-team', { 
+                roomId: currentRoomId, 
+                playerId: playerId,
+                teamIds: teamIds 
+            }, (response) => {
+                if (response.success) {
+                    showMessage('队伍已提交', 'success');
+                    document.getElementById('teamSelection').classList.add('hidden');
+                } else {
+                    showMessage(response.message || '提交失败', 'error');
+                }
+            });
+        });
+
+        // 投票
+        document.getElementById('voteApprove').addEventListener('click', () => {
+            if (hasVoted) {
+                showMessage('您已经投过票了', 'error');
+                return;
+            }
+            socket.emit('vote', { roomId: currentRoomId, playerId, vote: 'approve' }, (response) => {
+                if (response.success) {
+                    hasVoted = true;
+                    showMessage('投票成功', 'success');
+                }
+            });
+        });
+
+        document.getElementById('voteReject').addEventListener('click', () => {
+            if (hasVoted) {
+                showMessage('您已经投过票了', 'error');
+                return;
+            }
+            socket.emit('vote', { roomId: currentRoomId, playerId, vote: 'reject' }, (response) => {
+                if (response.success) {
+                    hasVoted = true;
+                    showMessage('投票成功', 'success');
+                }
+            });
+        });
+
+        // 任务执行
+        document.getElementById('missionSuccess').addEventListener('click', () => {
+            socket.emit('execute-mission', { roomId: currentRoomId, playerId, result: 'success' });
+        });
+
+        document.getElementById('missionFail').addEventListener('click', () => {
+            socket.emit('execute-mission', { roomId: currentRoomId, playerId, result: 'fail' });
+        });
+
+        // 监听游戏就绪（房间满员）
+        socket.on('game-ready', (data) => {
+            // 更新等待界面消息
+            const waitingMessage = document.getElementById('waitingMessage');
+            if (waitingMessage) {
+                waitingMessage.innerHTML = '✅ 房间已满（' + data.playerCount + '/' + data.configuredCount + '）<br>等待语音面板开始游戏...';
+            }
+            showMessage('房间已满，等待游戏开始...', 'success');
+        });
+
+        // 监听角色分配
+        socket.on('role-assigned', (data) => {
+            myRole = data.role;
+            const roleNames = {
+                'merlin': '梅林', 'percival': '派西维尔', 'servant': '忠臣',
+                'morgana': '莫甘娜', 'assassin': '刺客', 'mordred': '莫德雷德', 'oberon': '奥伯伦'
+            };
+            const sideNames = { 'good': '好人阵营', 'evil': '坏人阵营' };
+            
+            document.getElementById('roleName').textContent = roleNames[data.role] || data.role;
+            document.getElementById('roleSide').textContent = sideNames[data.side];
+            
+            // 显示视野
+            if (data.vision && data.vision.sees.length > 0) {
+                document.getElementById('visionList').classList.remove('hidden');
+                document.getElementById('visionContent').innerHTML = data.vision.sees.map(v => `
+                    <div class="vision-item">
+                        <span>${v.name}</span>
+                        <span>${v.role}</span>
+                    </div>
+                `).join('');
+            }
+            
+            showScreen('roleScreen');
+        });
+
+        // 监听阶段变更
+        socket.on('phase-changed', (data) => {
+            const phaseNames = {
+                'team-building': '组建队伍阶段',
+                'voting': '投票表决阶段',
+                'mission': '任务执行阶段',
+                'assassination': '刺杀阶段',
+                'ended': '游戏结束'
+            };
+            
+            document.getElementById('gamePhase').textContent = phaseNames[data.gamePhase] || data.gamePhase;
+            
+            // 显示对应的操作区域
+            document.getElementById('teamSelection').classList.add('hidden');
+            document.getElementById('votingSection').classList.add('hidden');
+            document.getElementById('missionSection').classList.add('hidden');
+            
+            if (data.gamePhase === 'team-building') {
+                // 只有队长可以组建队伍
+                const currentPlayer = data.players.find(p => p.id === playerId);
+                isCurrentLeader = currentPlayer?.isLeader || false;
+                const leaderId = data.players.find(p => p.isLeader)?.id;
+                
+                if (isCurrentLeader) {
+                    // 计算需要的队伍人数
+                    const teamSize = data.currentMissionSize || 2;
+                    renderTeamSelection(data.players, leaderId, teamSize);
+                    document.getElementById('teamSelection').classList.remove('hidden');
+                }
+            } else if (data.gamePhase === 'voting') {
+                document.getElementById('votingSection').classList.remove('hidden');
+            } else if (data.gamePhase === 'mission') {
+                const currentPlayer = data.players.find(p => p.id === playerId);
+                const inTeam = currentPlayer?.inTeam;
+                
+                // 显示当前阶段信息给所有玩家
+                document.getElementById('missionSection').classList.remove('hidden');
+                
+                // 只有在队伍中的玩家才能执行任务操作
+                const missionButtons = document.querySelector('.mission-buttons');
+                if (missionButtons) {
+                    missionButtons.style.display = inTeam ? 'flex' : 'none';
+                }
+                
+                // 更新任务区域的提示文字
+                const missionTitle = document.querySelector('#missionSection h3');
+                const missionDesc = document.querySelector('#missionSection p');
+                if (missionTitle && missionDesc) {
+                    if (inTeam) {
+                        missionTitle.textContent = '🎯 任务执行 - 你是队员';
+                        missionDesc.textContent = '请选择任务结果：';
+                    } else {
+                        missionTitle.textContent = '🎯 任务执行中';
+                        missionDesc.textContent = '等待队伍成员执行任务...';
+                    }
+                }
+            }
+        });
+
+        // 监听游戏结束
+        socket.on('game-ended', (data) => {
+            const winnerText = data.winner === 'good' ? '好人阵营获胜！' : '坏人阵营获胜！';
+            document.getElementById('winnerText').textContent = winnerText;
+            showScreen('endScreen');
+        });
+
+        function showScreen(screenId) {
+            ['joinScreen', 'waitingScreen', 'roleScreen', 'gameScreen', 'endScreen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function showMessage(text, type) {
+            const msgEl = document.getElementById('message');
+            msgEl.textContent = text;
+            msgEl.className = type;
+            setTimeout(() => msgEl.textContent = '', 3000);
+        }
+    </script>
+</body>
+</html>

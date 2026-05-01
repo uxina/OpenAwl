@@ -1,0 +1,17 @@
+{
+  "name": "avalon-voice-controller",
+  "version": "2.0.0",
+  "description": "阿瓦隆语音主控设备模块",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "generate-audio": "node scripts/generate-audio.js",
+    "test-voice": "node scripts/test-voice.js",
+    "connect-bt": "bash scripts/connect-bluetooth.sh"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.7.0",
+    "node-speaker": "^0.5.4",
+    "wav": "^1.0.2"
+  }
+}
